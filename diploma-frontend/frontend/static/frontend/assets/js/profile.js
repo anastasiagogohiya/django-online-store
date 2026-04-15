@@ -16,7 +16,7 @@ var mix = {
                 return
             }
 
-            this.postData('/api/profile', {
+            this.postData('/api/profile/', {
                 fullName: this.fullName,
                 avatar: this.avatar,
                 phone: this.phone,
@@ -42,7 +42,7 @@ var mix = {
                 return
             }
             console.log({ currentPassword: this.passwordCurrent, newPassword: this.password })
-            this.postData('/api/profile/password', { currentPassword: this.passwordCurrent, newPassword: this.password })
+            this.postData('/api/profile/password/', { currentPassword: this.passwordCurrent, newPassword: this.password })
               .then(({data}) => {
                    alert('Успешно сохранено')
                     this.passwordCurrent = ''
@@ -60,7 +60,7 @@ var mix = {
             const formData = new FormData()
             formData.append('avatar', file)
 
-            this.postData('/api/profile/avatar', formData, {'Content-Type': 'multipart/form-data'})
+            this.postData('/api/profile/avatar/', formData, {'Content-Type': 'multipart/form-data'})
             .then(() => {
                 this.getProfile()
             }).catch(() => {

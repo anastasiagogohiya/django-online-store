@@ -29,8 +29,22 @@ class UserManager(BaseUserManager):
         return self.create_user(email, password, is_staff=True, is_superuser=True, **extra)
 
 
+class Avatar(models.Model):
+    """Модель для хранения аватара пользователя"""
+    src = models.ImageField(
+        upload_to="app_users/avatars/user_avatars/",
+        default="app_users/avatars/default.png",
+        verbose_name="Ссылка на аватарку",
+    )
+    alt = models.CharField(max_length=128, verbose_name="Описание")
+
+    class Meta:
+        verbose_name = "Аватар"
+        verbose_name_plural = "Аватары"
+
+
 class CustomUser(AbstractUser):
-    """Кастомная модель User с дополнительными полями.
+    """"Модель пользователя
     (Валидация некоторых полей будет вынесена в отдельный код)
     Из Абстрактого класса User унаследованы:
         - first_name (str): Имя.
@@ -44,9 +58,12 @@ class CustomUser(AbstractUser):
     """
     username = None # отключаем авторизацию по username
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
-    phone = models.CharField(max_length=20, unique=True, blank=True, null=True, verbose_name="Номер телефона")
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True, verbose_name="Аватар")
     is_active = models.BooleanField(default=True, verbose_name="Активен")  # для мягкого удаления
+    phone = models.PositiveIntegerField(
+        blank=True, null=True, unique=True, verbose_name="Номер телефона")
+    avatar = models.ForeignKey(Avatar, on_delete=models.CASCADE, null=True, related_name="users", blank=True, verbose_name="Аватар")
+    balance = models.DecimalField(decimal_places=2, max_digits=10, default=0, verbose_name="Баланс")
+
 
     # Настройка авторизации по email вместо username, вход по email (удобно для пользователей)
     USERNAME_FIELD = 'email'
