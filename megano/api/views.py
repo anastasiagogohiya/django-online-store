@@ -1,145 +1,16 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from random import randrange
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
-from rest_framework.response import Response
 import json
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, HttpRequest
-from drf_spectacular.utils import extend_schema
+from django.http import HttpResponse
+from .auth_views import SignInView, SignUpView, SignOutView
+from .profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
 
 User = get_user_model()
 
-
-"""Авторизация существующего пользователя POST"""
-# Название путей auth в swagger
-@extend_schema(
-    summary="Авторизация существующего пользователя",
-    request={
-        'application/json': {
-            'properties': {
-                'username': {'type': 'string'},
-                'password': {'type': 'string'}
-            }
-        }
-    },
-	responses={
-		200: {
-			'type': 'object',
-			'properties': {
-				'token': {'type': 'string'}
-			}
-		},
-		401: {
-			'type': 'object',
-			'properties': {
-				'error': {'type': 'string'}
-			}
-		}
-	},
-	tags=['auth'],
-)
-class SignInView(APIView):
-	def post(self, request: HttpRequest) -> HttpResponse:
-		#serialized_data = list(request.data.keys())[0] # первый элемент из списка словаря
-		#user_data = json.loads(serialized_data) # из строки в словарь
-
-		username = request.data.get("username")
-		password = request.data.get("password")
-
-		user = authenticate(request, username=username, password=password)
-
-		# Проверяем есть ли такой пользователь, если есть получает токен, если нет создаем токен
-		if user is not None:
-			token, created = Token.objects.get_or_create(user=user)
-			return Response({'token': token.key}, status=status.HTTP_200_OK)
-		else:
-			return Response({'error': 'Неверный username или пароль'}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-
-"""Регистрация нового пользователя POST, создание токена."""
-@extend_schema(
-    summary="Регистрация нового пользователя",
-    request={
-        'application/json': {
-            'properties': {
-                'name': {'type': 'string', 'description': 'Имя пользователя'},
-                'username': {'type': 'string', 'format': 'username'},
-                'password': {'type': 'string', 'format': 'password'}
-            },
-        }
-    },
-	responses={
-		201: {
-			'type': 'object',
-			'properties': {
-				'token': {'type': 'string'}
-			}
-		},
-		400: {
-			'type': 'object',
-			'properties': {
-				'error': {'type': 'string'}
-			}
-		}
-	},
-	tags=['auth'],
-)
-class SignUpView(APIView):
-	def post(self, request: HttpRequest) -> HttpResponse:
-		full_name = request.data.get("name")
-		username = request.data.get('username')
-		password = request.data.get('password')
-
-		# Проверка обязательных полей
-		if not all([full_name, username, password]):
-			return Response(
-				{'error': 'Поля name, username и password обязательны'},
-				status=status.HTTP_400_BAD_REQUEST
-			)
-
-		name_parts = full_name.split(' ', 1) # делю на части имя
-		first_name = name_parts[0]
-		last_name = name_parts[1] if len(name_parts) > 1 else ''
-
-		if User.objects.filter(username=username).exists():
-			return Response(
-				{'error': 'Пользователь с таким username уже существует'},
-				status=status.HTTP_400_BAD_REQUEST)
-
-		user = User.objects.create_user(username=username,
-										first_name=first_name,
-										last_name=last_name,
-										password=password)
-
-		# Создаем токен для пользователя
-		token = Token.objects.create(user=user)
-
-		return Response({"token": token.key}, status=status.HTTP_201_CREATED)
-
-
-@extend_schema(summary="Выход из системы, удаление токена",
-				responses={
-						200: {
-							'type': 'object',
-							'properties': {
-								'message': {'type': 'string'}
-							}
-						}
-					},
-			   tags=['auth'],)
-class SignOutView(APIView):
-	def post(self, request):
-		# Если это авторизованный пользователь, то выходим и удаляем токен
-		if request.user.is_authenticated:
-			request.user.auth_token.delete() # токен удаляем
-			logout(request) # выходим
-		return Response({'message': 'Вы вышли из системы'}, status=status.HTTP_200_OK)
-
+__all__ = [
+    'SignInView', 'SignUpView', 'SignOutView',
+    'ProfileView', 'ProfilePasswordView', 'ProfileAvatarUploadView',]
 
 
 def banners(request):
@@ -510,36 +381,6 @@ def productReviews(request, id):
 	]
 	return JsonResponse(data, safe=False)
 
-def profile(request):
-	if(request.method == 'GET'):
-		data = {
-			"fullName": "Annoying Orange",
-			"email": "no-reply@mail.ru",
-			"phone": "88002000600",
-			"avatar": {
-				"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-				"alt": "hello alt",
-			}
-		}
-		return JsonResponse(data)
-
-	elif(request.method == 'POST'):
-		data = {
-			"fullName": "Annoying Green",
-			"email": "no-reply@mail.ru",
-			"phone": "88002000600",
-			"avatar": {
-				"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-				"alt": "hello alt",
-			}
-		}
-		return JsonResponse(data)
-
-	return HttpResponse(status=500)
-
-def profilePassword(request):
-	print(request.body)
-	return HttpResponse(status=200)
 
 def orders(request):
 	if(request.method == 'GET'):
@@ -685,8 +526,3 @@ def order(request, id):
 def payment(request, id):
 	print('qweqwewqeqwe', id)
 	return HttpResponse(status=200)
-
-def avatar(request):
-	if request.method == "POST":
-# 		print(request.FILES["avatar"])
-		return HttpResponse(status=200)

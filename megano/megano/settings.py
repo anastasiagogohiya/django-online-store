@@ -93,7 +93,6 @@ DATABASES = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 # Подключаем нашу кастомную модель пользователя app_users/models.py
-AUTH_USER_MODEL = 'app_users.CustomUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
