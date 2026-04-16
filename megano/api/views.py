@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from random import randrange
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 import json
 from django.contrib.auth import authenticate, login, logout
@@ -20,12 +21,25 @@ User = get_user_model()
     request={
         'application/json': {
             'properties': {
-                'email': {'type': 'string'},
+                'username': {'type': 'string'},
                 'password': {'type': 'string'}
             }
         }
     },
-    responses={200: 'OK', 401: 'Unauthorized'},
+	responses={
+		200: {
+			'type': 'object',
+			'properties': {
+				'token': {'type': 'string'}
+			}
+		},
+		401: {
+			'type': 'object',
+			'properties': {
+				'error': {'type': 'string'}
+			}
+		}
+	},
 	tags=['auth'],
 )
 class SignInView(APIView):
@@ -33,60 +47,98 @@ class SignInView(APIView):
 		#serialized_data = list(request.data.keys())[0] # первый элемент из списка словаря
 		#user_data = json.loads(serialized_data) # из строки в словарь
 
-		email = request.data.get("email") # не username
+		username = request.data.get("username")
 		password = request.data.get("password")
 
-		user = authenticate(request, email=email, password=password)
+		user = authenticate(request, username=username, password=password)
 
+		# Проверяем есть ли такой пользователь, если есть получает токен, если нет создаем токен
 		if user is not None:
-			login(request, user)
-			return Response(status=status.HTTP_200_OK)
+			token, created = Token.objects.get_or_create(user=user)
+			return Response({'token': token.key}, status=status.HTTP_200_OK)
 		else:
-			return Response(status=status.HTTP_401_UNAUTHORIZED)
+			return Response({'error': 'Неверный username или пароль'}, status=status.HTTP_401_UNAUTHORIZED)
 
-"""Регистрация нового пользователя POST"""
+
+
+"""Регистрация нового пользователя POST, создание токена."""
 @extend_schema(
     summary="Регистрация нового пользователя",
     request={
         'application/json': {
             'properties': {
-                'name': {'type': 'string', 'description': 'Полное имя пользователя'},
-                'email': {'type': 'string', 'format': 'email'},
+                'name': {'type': 'string', 'description': 'Имя пользователя'},
+                'username': {'type': 'string', 'format': 'username'},
                 'password': {'type': 'string', 'format': 'password'}
             },
         }
     },
-    responses={201: 'Created', 400: 'Bad request'},
+	responses={
+		201: {
+			'type': 'object',
+			'properties': {
+				'token': {'type': 'string'}
+			}
+		},
+		400: {
+			'type': 'object',
+			'properties': {
+				'error': {'type': 'string'}
+			}
+		}
+	},
 	tags=['auth'],
 )
 class SignUpView(APIView):
 	def post(self, request: HttpRequest) -> HttpResponse:
-		full_name = request.data.get("name")  # у меня в модели нет name
-		email = request.data.get('email')
+		full_name = request.data.get("name")
+		username = request.data.get('username')
 		password = request.data.get('password')
+
+		# Проверка обязательных полей
+		if not all([full_name, username, password]):
+			return Response(
+				{'error': 'Поля name, username и password обязательны'},
+				status=status.HTTP_400_BAD_REQUEST
+			)
 
 		name_parts = full_name.split(' ', 1) # делю на части имя
 		first_name = name_parts[0]
 		last_name = name_parts[1] if len(name_parts) > 1 else ''
 
-		if User.objects.filter(email=email).exists():
+		if User.objects.filter(username=username).exists():
 			return Response(
-				{'error': 'Пользователь с таким email уже существует'},
+				{'error': 'Пользователь с таким username уже существует'},
 				status=status.HTTP_400_BAD_REQUEST)
 
-		user = User.objects.create_user(email=email,
+		user = User.objects.create_user(username=username,
 										first_name=first_name,
 										last_name=last_name,
 										password=password)
-		login(request, user)
-		return Response(status=status.HTTP_201_CREATED)
 
-@extend_schema(summary="Выход из системы",
+		# Создаем токен для пользователя
+		token = Token.objects.create(user=user)
+
+		return Response({"token": token.key}, status=status.HTTP_201_CREATED)
+
+
+@extend_schema(summary="Выход из системы, удаление токена",
+				responses={
+						200: {
+							'type': 'object',
+							'properties': {
+								'message': {'type': 'string'}
+							}
+						}
+					},
 			   tags=['auth'],)
 class SignOutView(APIView):
 	def post(self, request):
-		logout(request)
-		return Response(status=status.HTTP_200_OK)
+		# Если это авторизованный пользователь, то выходим и удаляем токен
+		if request.user.is_authenticated:
+			request.user.auth_token.delete() # токен удаляем
+			logout(request) # выходим
+		return Response({'message': 'Вы вышли из системы'}, status=status.HTTP_200_OK)
 
 
 
