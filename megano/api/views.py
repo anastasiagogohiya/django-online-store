@@ -1,93 +1,16 @@
-from django.shortcuts import render
 from django.http import JsonResponse
 from random import randrange
-from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.response import Response
 import json
-from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse, HttpRequest
-from drf_spectacular.utils import extend_schema
+from django.http import HttpResponse
+from .auth_views import SignInView, SignUpView, SignOutView
+from .profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
 
 User = get_user_model()
 
-
-"""Авторизация существующего пользователя POST"""
-# Название путей auth в swagger
-@extend_schema(
-    summary="Авторизация существующего пользователя",
-    request={
-        'application/json': {
-            'properties': {
-                'email': {'type': 'string'},
-                'password': {'type': 'string'}
-            }
-        }
-    },
-    responses={200: 'OK', 401: 'Unauthorized'},
-	tags=['auth'],
-)
-class SignInView(APIView):
-	def post(self, request: HttpRequest) -> HttpResponse:
-		#serialized_data = list(request.data.keys())[0] # первый элемент из списка словаря
-		#user_data = json.loads(serialized_data) # из строки в словарь
-
-		email = request.data.get("email") # не username
-		password = request.data.get("password")
-
-		user = authenticate(request, email=email, password=password)
-
-		if user is not None:
-			login(request, user)
-			return Response(status=status.HTTP_200_OK)
-		else:
-			return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-"""Регистрация нового пользователя POST"""
-@extend_schema(
-    summary="Регистрация нового пользователя",
-    request={
-        'application/json': {
-            'properties': {
-                'name': {'type': 'string', 'description': 'Полное имя пользователя'},
-                'email': {'type': 'string', 'format': 'email'},
-                'password': {'type': 'string', 'format': 'password'}
-            },
-        }
-    },
-    responses={201: 'Created', 400: 'Bad request'},
-	tags=['auth'],
-)
-class SignUpView(APIView):
-	def post(self, request: HttpRequest) -> HttpResponse:
-		full_name = request.data.get("name")  # у меня в модели нет name
-		email = request.data.get('email')
-		password = request.data.get('password')
-
-		name_parts = full_name.split(' ', 1) # делю на части имя
-		first_name = name_parts[0]
-		last_name = name_parts[1] if len(name_parts) > 1 else ''
-
-		if User.objects.filter(email=email).exists():
-			return Response(
-				{'error': 'Пользователь с таким email уже существует'},
-				status=status.HTTP_400_BAD_REQUEST)
-
-		user = User.objects.create_user(email=email,
-										first_name=first_name,
-										last_name=last_name,
-										password=password)
-		login(request, user)
-		return Response(status=status.HTTP_201_CREATED)
-
-@extend_schema(summary="Выход из системы",
-			   tags=['auth'],)
-class SignOutView(APIView):
-	def post(self, request):
-		logout(request)
-		return Response(status=status.HTTP_200_OK)
-
+__all__ = [
+    'SignInView', 'SignUpView', 'SignOutView',
+    'ProfileView', 'ProfilePasswordView', 'ProfileAvatarUploadView',]
 
 
 def banners(request):
@@ -458,36 +381,6 @@ def productReviews(request, id):
 	]
 	return JsonResponse(data, safe=False)
 
-def profile(request):
-	if(request.method == 'GET'):
-		data = {
-			"fullName": "Annoying Orange",
-			"email": "no-reply@mail.ru",
-			"phone": "88002000600",
-			"avatar": {
-				"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-				"alt": "hello alt",
-			}
-		}
-		return JsonResponse(data)
-
-	elif(request.method == 'POST'):
-		data = {
-			"fullName": "Annoying Green",
-			"email": "no-reply@mail.ru",
-			"phone": "88002000600",
-			"avatar": {
-				"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-				"alt": "hello alt",
-			}
-		}
-		return JsonResponse(data)
-
-	return HttpResponse(status=500)
-
-def profilePassword(request):
-	print(request.body)
-	return HttpResponse(status=200)
 
 def orders(request):
 	if(request.method == 'GET'):
@@ -633,8 +526,3 @@ def order(request, id):
 def payment(request, id):
 	print('qweqwewqeqwe', id)
 	return HttpResponse(status=200)
-
-def avatar(request):
-	if request.method == "POST":
-# 		print(request.FILES["avatar"])
-		return HttpResponse(status=200)

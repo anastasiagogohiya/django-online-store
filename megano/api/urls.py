@@ -1,10 +1,17 @@
 from django.urls import path
-from .views import SignInView, SignUpView, SignOutView
+from .profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
+from .auth_views import SignInView, SignUpView, SignOutView
 
 urlpatterns = [
+    # auth
     path('sign-in/', SignInView.as_view(), name='sign-in'),
     path('sign-up/', SignUpView.as_view(), name='sign-up'),
     path('sign-out/', SignOutView.as_view(), name='sign-out'),
+
+    # profile
+    path('profile/', ProfileView.as_view(), name='profile'),
+    path('profile/password/', ProfilePasswordView.as_view(), name='change-password'),
+    path('profile/avatar/', ProfileAvatarUploadView.as_view(), name='change-avatar'),
     #path('banners/', views.banners),
     #path('categories/', views.categories),
     #path('catalog/', views.catalog),
@@ -16,9 +23,6 @@ urlpatterns = [
     #path('product/<int:id>/', views.product),
     #path('product/<int:id>/reviews/', views.productReviews),
     #path('tags/', views.tags),
-    #path('profile/', views.profile),
-    #path('profile/password/', views.profilePassword),
-    #path('profile/avatar/', views.avatar),
     #path('order/<int:id>/', views.order),
     #path('payment/<int:id>/', views.payment),
 ]
