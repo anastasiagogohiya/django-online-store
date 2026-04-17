@@ -1,0 +1,57 @@
+[
+  {
+    "model": "catalog.Category",
+    "pk": 1,
+    "fields": {
+      "title": "Товары для дома",
+      "image": "",
+      "slug": "tovary-dlya-doma",
+      "parent": null,
+      "ordering_index": 0
+    }
+  },
+  {
+    "model": "catalog.Category",
+    "pk": 2,
+    "fields": {
+      "title": "Робот-пылесос",
+      "image": "",
+      "slug": "robot-pylesos",
+      "parent": 1,
+      "ordering_index": 0
+    }
+  },
+  {
+    "model": "catalog.Category",
+    "pk": 3,
+    "fields": {
+      "title": "Бассейны",
+      "image": "",
+      "slug": "basseyny",
+      "parent": 1,
+      "ordering_index": 0
+    }
+  },
+  {
+    "model": "catalog.Category",
+    "pk": 4,
+    "fields": {
+      "title": "Одежда",
+      "image": "catalog/categories/odezhda.jpg",
+      "slug": "odezhda",
+      "parent": null,
+      "ordering_index": 0
+    }
+  },
+  {
+    "model": "catalog.Category",
+    "pk": 5,
+    "fields": {
+      "title": "Женское белье",
+      "image": "",
+      "slug": "zhenskoe-bele",
+      "parent": 4,
+      "ordering_index": 0
+    }
+  }
+]

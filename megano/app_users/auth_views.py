@@ -1,3 +1,8 @@
+""" auth/:
+    Авторизация существующего пользователя POST
+    Регистрация нового пользователя POST, создание токена.
+    Выход из личного кабинета.
+"""
 from django.contrib.auth import authenticate, logout
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth import get_user_model
@@ -7,15 +12,11 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import json
 from app_users.models import Profile, Avatar
 
 User = get_user_model()
 
-
-""" Авторизация существующего пользователя POST
-    Регистрация нового пользователя POST, создание токена.
-    Выход из личного кабинета.       
-"""
 
 @extend_schema(
     summary="Авторизация существующего пользователя",
@@ -45,11 +46,11 @@ User = get_user_model()
 )
 class SignInView(APIView):
 	def post(self, request: HttpRequest) -> HttpResponse:
-		#serialized_data = list(request.data.keys())[0] # первый элемент из списка словаря
-		#user_data = json.loads(serialized_data) # из строки в словарь
+		json_string = list(request.data.keys())[0]  # фронтэнд отправляет строку, нужен первый индекс
+		data = json.loads(json_string)
 
-		username = request.data.get("username")
-		password = request.data.get("password")
+		username = data.get("username")
+		password = data.get("password")
 
 		user = authenticate(request, username=username, password=password)
 
@@ -90,14 +91,25 @@ class SignInView(APIView):
 )
 class SignUpView(APIView):
 	def post(self, request: HttpRequest) -> HttpResponse:
-		name = request.data.get("name")
-		username = request.data.get('username')
-		password = request.data.get('password')
+		print("=" * 60)
+		print("PATH:", request.path)
+		print("CONTENT_TYPE:", request.content_type)
+		print("DATA:", request.data)
+		print("POST:", request.POST)
+		print("GET:", request.GET)
+		print("=" * 60)
 
-		# Проверка обязательных полей
+		json_string = list(request.data.keys())[0] # фронтэнд отправляет строку, нужен первый индекс
+		data = json.loads(json_string)
+		name = data.get('fullName') or data.get('name')
+		username = data.get('username')
+		password = data.get('password')
+
+		# Проверка
 		if not all([name, username, password]):
 			return Response(
-				{'error': 'Поля name, username и password обязательны'},
+				{
+					'error': f'Поля name, username и password обязательны. Получено: name={name}, username={username}, password={"*" if password else None}'},
 				status=status.HTTP_400_BAD_REQUEST
 			)
 
@@ -117,6 +129,7 @@ class SignUpView(APIView):
 
 
 @extend_schema(summary="Выход из системы, удаление токена",
+				request=None,
 				responses={
 						200: {
 							'type': 'object',

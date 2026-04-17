@@ -3,14 +3,11 @@ from random import randrange
 import json
 from django.contrib.auth import get_user_model
 from django.http import HttpResponse
-from .auth_views import SignInView, SignUpView, SignOutView
-from .profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
+
+
 
 User = get_user_model()
 
-__all__ = [
-    'SignInView', 'SignUpView', 'SignOutView',
-    'ProfileView', 'ProfilePasswordView', 'ProfileAvatarUploadView',]
 
 
 def banners(request):
@@ -39,28 +36,6 @@ def banners(request):
 	]
 	return JsonResponse(data, safe=False)
 
-def categories(request):
-	data = [
-		 {
-			 "id": 123,
-			 "title": "video card",
-			 "image": {
-				"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-				 "alt": "Image alt string"
-			 },
-			 "subcategories": [
-				 {
-					 "id": 123,
-					 "title": "video card",
-					 "image": {
-							"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-						 	"alt": "Image alt string"
-					 }
-				 }
-			 ]
-		 }
-	 ]
-	return JsonResponse(data, safe=False)
 
 
 def catalog(request):

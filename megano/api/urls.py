@@ -1,6 +1,10 @@
 from django.urls import path
-from .profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
-from .auth_views import SignInView, SignUpView, SignOutView
+from app_users.profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
+from app_users.auth_views import SignInView, SignUpView, SignOutView
+from catalog.catalog_views import CategoriesView
+
+
+# Нужно ли выносить эти пути по папкам проекта?
 
 urlpatterns = [
     # auth
@@ -12,8 +16,11 @@ urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
     path('profile/password/', ProfilePasswordView.as_view(), name='change-password'),
     path('profile/avatar/', ProfileAvatarUploadView.as_view(), name='change-avatar'),
+
+    # catalog
+    path('categories/', CategoriesView.as_view(), name='categories'),
+
     #path('banners/', views.banners),
-    #path('categories/', views.categories),
     #path('catalog/', views.catalog),
     #path('products/popular/', views.productsPopular),
     #path('products/limited/', views.productsLimited),

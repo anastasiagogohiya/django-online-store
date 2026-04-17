@@ -1,3 +1,5 @@
+""" profile/:
+ПРОФИЛЬ: Получение, обновление данных, изменение пароля, обновление аватара"""
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from django.contrib.auth import get_user_model
@@ -7,35 +9,20 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from app_users.models import Profile, Avatar
 
-from .serializers import ProfileSerializer
+from app_users.profile_serializers import ProfileSerializer
 
-"""ПРОФИЛЬ: Получение, обновление данных, обновление пароля, обновление аватара"""
 
 User = get_user_model()
+
+
+# Не проверен код на фронтэнде, в swagger все ок.
 
 class ProfileView(APIView):
 	permission_classes = [IsAuthenticated] # только для авторизованных пользователей
 
 	@extend_schema(
 		summary="Получение профиля",
-		responses={
-			200: {
-				'type': 'object',
-				'properties': {
-					'full_name': {'type': 'string', 'example': 'Annoying Orange'},
-					'email': {'type': 'string', 'example': 'no-reply@mail.ru'},
-					'phone': {'type': 'string', 'example': '88002000600'},
-					'avatar': {
-						'type': 'object',
-						'properties': {
-							'src': {'type': 'string',
-									'example': 'https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg'},
-							'alt': {'type': 'string', 'example': 'hello alt'}
-						}
-					}
-				}
-			}
-		},
+		responses={200: ProfileSerializer},
 		tags=['profile'],
 	)
 	def get(self, request):
@@ -45,50 +32,12 @@ class ProfileView(APIView):
 
 	@extend_schema(
 		summary="Обновление профиля",
-		request={
-			'application/json': {
-				'type': 'object',
-				'properties': {
-					'full_name': {'type': 'string', 'example': 'New Name', 'description': 'Полное имя'},
-					'email': {'type': 'string', 'format': 'email', 'example': 'new@mail.ru', 'description': 'Email'},
-					'phone': {'type': 'string', 'example': '+79991234567', 'description': 'Телефон'},
-					'avatar': {
-						'type': 'object',
-						'properties': {
-							'src': {'type': 'string', 'example': 'https://example.com/new-avatar.jpg'},
-							'alt': {'type': 'string', 'example': 'new alt text'}
-						},
-						'description': 'Аватар'
-					}
-				}
-			}
-		},
-		responses={
-			200: {
-				'type': 'object',
-				'properties': {
-					'full_name': {'type': 'string'},
-					'email': {'type': 'string'},
-					'phone': {'type': 'string'},
-					'avatar': {
-						'type': 'object',
-						'properties': {
-							'src': {'type': 'string'},
-							'alt': {'type': 'string'}
-						}
-					}
-				}
-			},
-			400: {
-				'type': 'object',
-				'properties': {
-					'message': {'type': 'string'}
-				}
-			}
-		},
+		request=ProfileSerializer,
+		responses={200: ProfileSerializer, 400: None},
 		tags=['profile'],
 	)
 	def post(self, request):
+		"""В данном методе не ловится avatar, в сериализаторе read_only=True"""
 		profile = Profile.objects.get(user=request.user)
 
 		serializer = ProfileSerializer(profile, data=request.data, partial=True)
@@ -103,8 +52,8 @@ class ProfileView(APIView):
     request={
         'application/json': {
             'properties': {
-                'current_password': {'type': 'string', 'description': 'Текущий пароль'},
-                'new_password': {'type': 'string', 'description': 'Новый пароль'}
+                'current_password': {'type': 'string', 'description': 'Текущий пароль', 'example': 'oldpassword'},
+                'new_password': {'type': 'string', 'description': 'Новый пароль', 'example': 'newpassword'}
             },
 		'required': ['current_password', 'new_password']
         }
