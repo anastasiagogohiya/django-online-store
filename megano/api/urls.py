@@ -1,3 +1,4 @@
+# megano/api/urls.py
 from django.urls import path
 from app_users.profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
 from app_users.auth_views import SignInView, SignUpView, SignOutView

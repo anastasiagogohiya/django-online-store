@@ -43,6 +43,8 @@ INSTALLED_APPS = [
 
     'frontend',
 
+    'django_extensions',
+
     'app_users.apps.AppUsersConfig',
     'catalog.apps.CatalogConfig',
     'api',
@@ -139,12 +141,50 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Сделаем пагинацию, чтобы уменьшить нагрузку на сервер, вывод 10 результатов
 REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
 		  "PAGE_SIZE": 10,
-		  "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema"}
+		  "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+          'DEFAULT_AUTHENTICATION_CLASSES': [
+            'rest_framework.authentication.TokenAuthentication',
+            'rest_framework.authentication.SessionAuthentication',
+                ]}
 
 # Swagger
 SPECTACULAR_SETTINGS = {
-    "TITLE": "MEGANO happy shop project API",
+    "TITLE": "MEGANO shop project API",
     "DESCRIPTION": "API для интернет-магазина - дипломный проект",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+
+# Настройка логирования
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'app_users': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
 }
