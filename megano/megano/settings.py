@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'drf_spectacular',
+    'django_filters',
 
     'frontend',
 
@@ -144,8 +145,12 @@ REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNum
 		  "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
           'DEFAULT_AUTHENTICATION_CLASSES': [
             'rest_framework.authentication.TokenAuthentication',
-            'rest_framework.authentication.SessionAuthentication',
-                ]}
+            'rest_framework.authentication.SessionAuthentication',],
+          'DEFAULT_FILTER_BACKENDS': [
+              'django_filters.rest_framework.DjangoFilterBackend',
+              'rest_framework.filters.OrderingFilter',
+              'rest_framework.filters.SearchFilter',],
+          }
 
 # Swagger
 SPECTACULAR_SETTINGS = {

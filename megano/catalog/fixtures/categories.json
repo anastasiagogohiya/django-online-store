@@ -4,7 +4,7 @@
     "pk": 1,
     "fields": {
       "title": "Товары для дома",
-      "image": "",
+      "image": "catalog/categories/tovary-dlya-doma.jpg",
       "slug": "tovary-dlya-doma",
       "parent": null,
       "ordering_index": 0
@@ -15,7 +15,7 @@
     "pk": 2,
     "fields": {
       "title": "Робот-пылесос",
-      "image": "",
+      "image": "catalog/categories/robot-pylesos.png",
       "slug": "robot-pylesos",
       "parent": 1,
       "ordering_index": 0
@@ -26,7 +26,7 @@
     "pk": 3,
     "fields": {
       "title": "Бассейны",
-      "image": "",
+      "image": "catalog/categories/basseyny.jpg",
       "slug": "basseyny",
       "parent": 1,
       "ordering_index": 0
@@ -48,7 +48,7 @@
     "pk": 5,
     "fields": {
       "title": "Женское белье",
-      "image": "",
+      "image": "catalog/categories/zhenskoe-bele.jpg",
       "slug": "zhenskoe-bele",
       "parent": 4,
       "ordering_index": 0

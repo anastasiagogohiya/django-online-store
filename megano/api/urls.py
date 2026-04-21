@@ -2,7 +2,7 @@
 from django.urls import path
 from app_users.profile_views import ProfileView, ProfilePasswordView, ProfileAvatarUploadView
 from app_users.auth_views import SignInView, SignUpView, SignOutView
-from catalog.catalog_views import CategoriesView
+from catalog.catalog_views import CategoriesView, CatalogView
 
 
 # Нужно ли выносить эти пути по папкам проекта?
@@ -20,9 +20,9 @@ urlpatterns = [
 
     # catalog
     path('categories/', CategoriesView.as_view(), name='categories'),
+    path('catalog/', CatalogView.as_view(), name='catalog'),
 
     #path('banners/', views.banners),
-    #path('catalog/', views.catalog),
     #path('products/popular/', views.productsPopular),
     #path('products/limited/', views.productsLimited),
     #path('sales/', views.sales),
