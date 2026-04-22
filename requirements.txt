@@ -3,6 +3,7 @@ attrs==26.1.0
 diploma-frontend @ file:///home/nastasiyaogokhiya/portfolio/python_django_diploma/diploma-frontend/dist/diploma_frontend-0.6.tar.gz#sha256=0cc67e645940dac4edd21e12bfcd77ac8a5c01f975c880227e944b34cdb3489e
 Django==6.0.3
 django-extensions==4.1
+django-filter==25.2
 djangorestframework==3.17.1
 drf-spectacular==0.29.0
 inflection==0.5.1

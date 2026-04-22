@@ -68,11 +68,19 @@ class ProductImage(models.Model):
     image = models.ImageField(upload_to='product_images/', verbose_name="Изображение товара")
     alt = models.CharField(max_length=255, blank=True)
 
+    class Meta:
+        verbose_name = "Изображение"
+        verbose_name_plural = "Изображения"
+
 
 class Specification(models.Model):
     """Спецификация (размер например)"""
     name = models.CharField(max_length=100, verbose_name='Название') # например Размер
     value = models.CharField(max_length=100, verbose_name='Значение') # например XL
+
+    class Meta:
+        verbose_name = "Спецификация"
+        verbose_name_plural = "Спецификации"
 
 
 class Product(SlugMixin, models.Model):
@@ -100,6 +108,11 @@ class Product(SlugMixin, models.Model):
     slug = models.SlugField(unique=True, blank=True)  # красивый вывод url
 
     # reviews удалила
+
+    @property
+    def available(self):
+        """True если есть в наличии (используется для фильтрации поиска)"""
+        return self.count > 0
 
     class Meta:
         verbose_name = "Товар"
