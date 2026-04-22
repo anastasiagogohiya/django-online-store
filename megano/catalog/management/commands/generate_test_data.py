@@ -386,7 +386,7 @@ class Command(BaseCommand):
                 rating=0,
                 reviews_count=0,
                 is_active=True,
-                is_limited=random.choice([True, False]) if i < 16 else False,
+                is_limited=i < 16,
                 ordering_index=purchase_count + bonus,  # Индекс = покупки + бонус
                 purchase_count=purchase_count,
                 slug=unique_slug,
