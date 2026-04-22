@@ -24,7 +24,7 @@ class AvatarSerializer(serializers.ModelSerializer):
         OpenApiExample(
             'Пример профиля',
             value={
-                'full_name': 'Annoying Orange',
+                'fullName': 'Annoying Orange',
                 'email': 'no-reply@mail.ru',
                 'phone': '88002000600',
                 'avatar': {
@@ -38,7 +38,32 @@ class AvatarSerializer(serializers.ModelSerializer):
 )
 class ProfileSerializer(serializers.ModelSerializer):
     avatar = AvatarSerializer(read_only=True) # сериализация изображения, чтобы было не id, read_only=True - не позволяет изменять, только для GET
+    fullName = serializers.CharField(source='full_name', required=False)
+    phone = serializers.CharField(required=False, allow_blank=True, allow_null=True)  # ← строковое поле для фронтенда
 
     class Meta:
         model = Profile
-        fields = ["full_name", "email", "phone", "avatar"]
+        fields = ["fullName", "email", "phone", "avatar"]
+
+    def validate(self, data):
+        return data
+
+    def update(self, instance, validated_data):
+        print(f"SERIALIZER update - validated_data: {validated_data}")
+
+        # Обновляем full_name
+        if 'full_name' in validated_data:
+            instance.full_name = validated_data['full_name']
+
+        # Обновляем phone
+        if 'phone' in validated_data:
+            instance.phone = validated_data['phone']
+
+        instance.save()
+
+        # Обновляем email пользователя
+        if 'email' in validated_data:
+            instance.user.email = validated_data['email']
+            instance.user.save()
+
+        return instance

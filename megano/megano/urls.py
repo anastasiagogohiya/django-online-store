@@ -1,19 +1,4 @@
-"""
-URL configuration for megano project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
+# megano/megano/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
@@ -28,3 +13,39 @@ urlpatterns = [
     path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     path("api/", include("api.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+# django_extensions (все urls для информации, они внутри frontend.urls, см выше)
+# ==============================================
+# ФРОНТЕНД ПУТИ
+# ==============================================
+# '' - Главная страница (работает)
+# 'about/' - О нас (работает)
+# 'sign-in/' - Вход в аккаунт (работает)
+# 'sign-up/' - Регистрация (работает)
+# 'profile/' - Профиль пользователя (работает)
+# 'catalog/' - Каталог
+# 'catalog/<int:id>/' - Карточка товара в каталоге
+
+# 'cart/' - Корзина
+# 'history-order/' - История заказов
+# 'order-detail/<int:id>/' - Детали заказа
+# 'orders/<int:id>/' - Заказы
+# 'payment/<int:id>/' - Страница оплаты
+# 'payment-someone/' - Оплата для другого человека
+# 'product/<int:id>/' - Карточка товара
+# 'progress-payment/' - Прогресс оплаты
+# 'sale/' - Распродажа
+
+
+
+# ==============================================
+# API ПУТИ (JSON данные)
+# ==============================================
+# 'api/sign-in/' - Вход (API) (swagger работает)
+# 'api/sign-up/' - Регистрация (API)
+# 'api/sign-out/' - Выход (API) (works, swagger работает)
+# 'api/profile/' - Получение/обновление данных профиля (работает, get swagger работает, post swagger работает
+# 'api/profile/password/' - Смена пароля (работает, только ПОСТ запрос, swagger работает)
+# 'api/profile/avatar/' - Загрузка аватарки
+# 'api/categories/' - Категории товаров

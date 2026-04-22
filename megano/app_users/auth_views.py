@@ -3,13 +3,13 @@
     Регистрация нового пользователя POST, создание токена.
     Выход из личного кабинета.
 """
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import authenticate, logout, login
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import json
@@ -45,22 +45,35 @@ User = get_user_model()
 	tags=['auth'],
 )
 class SignInView(APIView):
+	permission_classes = [AllowAny]
 	def post(self, request: HttpRequest) -> HttpResponse:
-		json_string = list(request.data.keys())[0]  # фронтэнд отправляет строку, нужен первый индекс
-		data = json.loads(json_string)
+		# для swagger
+		if request.content_type == 'application/json' and isinstance(request.data, dict):
+			data = request.data
+		else:  # для фронтэнда
+			json_string = list(request.data.keys())[0]  # фронтэнд отправляет строку, нужен первый индекс
+			data = json.loads(json_string)
 
+		print(f"Попытка входа.....")  # Для отладки
 		username = data.get("username")
 		password = data.get("password")
+
+
+		print(f"Попытка входа: username={username}")  # Для отладки
 
 		user = authenticate(request, username=username, password=password)
 
 		# Проверяем есть ли такой пользователь, если есть получает токен, если нет создаем токен
 		if user is not None:
+			login(request, user) # Вход через сессию (устанавливает sessionid в cookies)
 			token, created = Token.objects.get_or_create(user=user)
-			return Response({'token': token.key}, status=status.HTTP_200_OK)
+			return Response({
+				'token': token.key,
+				'user_id': user.id,
+				'username': user.username
+			}, status=status.HTTP_200_OK)
 		else:
 			return Response({'error': 'Неверный username или пароль'}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 @extend_schema(
     summary="Регистрация нового пользователя",
@@ -90,17 +103,16 @@ class SignInView(APIView):
 	tags=['auth'],
 )
 class SignUpView(APIView):
+	permission_classes = [AllowAny] # любой чел может зарегистрироваться
 	def post(self, request: HttpRequest) -> HttpResponse:
-		print("=" * 60)
-		print("PATH:", request.path)
-		print("CONTENT_TYPE:", request.content_type)
-		print("DATA:", request.data)
-		print("POST:", request.POST)
-		print("GET:", request.GET)
-		print("=" * 60)
+		# для swagger
+		if request.content_type == 'application/json' and isinstance(request.data, dict):
+			data = request.data
+		else: # для фронтэнда
+			json_string = list(request.data.keys())[0] # фронтэнд отправляет строку, нужен первый индекс
+			data = json.loads(json_string)
 
-		json_string = list(request.data.keys())[0] # фронтэнд отправляет строку, нужен первый индекс
-		data = json.loads(json_string)
+
 		name = data.get('fullName') or data.get('name')
 		username = data.get('username')
 		password = data.get('password')
@@ -122,10 +134,11 @@ class SignUpView(APIView):
 										password=password)
 		profile = Profile.objects.create(user=user, full_name=name)
 
-		# Создаем токен для пользователя
+		# логинимся и создаем токен для пользователя
+		login(request, user)
 		token = Token.objects.create(user=user)
 
-		return Response({"token": token.key}, status=status.HTTP_201_CREATED)
+		return Response({"token": token.key,  "user_id": user.id,}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(summary="Выход из системы, удаление токена",
