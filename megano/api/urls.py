@@ -7,6 +7,7 @@ from catalog.views.catalog_views import CatalogView
 from catalog.views.popular_views import ProductsPopularView
 from catalog.views.limited_views import ProductsLimitedView
 from catalog.views.sales_views import SalesView
+from catalog.views.tags_views import TagsView
 
 # Нужно ли выносить эти пути по папкам проекта?
 
@@ -23,18 +24,22 @@ urlpatterns = [
 
     # catalog
     path('categories/', CategoriesView.as_view(), name='categories'),
-    path('catalog/', CatalogView.as_view(), name='catalog'),
+    path('catalog', CatalogView.as_view(), name='catalog'),
+    path('catalog/', CatalogView.as_view(), name='catalog-swagger'), # в фронтэде без слэша на конце когда нужна например фильтрация по тэгам
     path('products/popular/', ProductsPopularView.as_view(), name='products-popular'),
     path('products/limited/', ProductsLimitedView.as_view(), name='products-limited'),
     path('sales/', SalesView.as_view(), name='sales'),
-
     #path('banners/', views.banners),
+
+    # tags
+    path('tags/', TagsView.as_view(), name='tags'),
+
 
     #path('basket/', views.basket),
     #path('orders/', views.orders),
     #path('product/<int:id>/', views.product),
     #path('product/<int:id>/reviews/', views.productReviews),
-    #path('tags/', views.tags),
+
     #path('order/<int:id>/', views.order),
     #path('payment/<int:id>/', views.payment),
 ]

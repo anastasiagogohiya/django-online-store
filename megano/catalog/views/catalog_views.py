@@ -9,12 +9,13 @@ from catalog.serializers.catalog_serializers import CategorySerializer, CatalogS
 from catalog.models import Category, Product
 from rest_framework.response import Response
 from rest_framework import generics
+from django.db.models import Q
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 import json
 
 
-
+"""Запрос на фильтрацию и сортировку данных"""
 
 User = get_user_model()
 
@@ -83,8 +84,8 @@ class CatalogView(generics.ListAPIView):
 
             OpenApiParameter(
                 name='tags',
-                description='page\n\nArray of tag objects',
                 required=False,
+                description='page',
                 location=OpenApiParameter.QUERY,
                 many=True,
                 type=inline_serializer(
@@ -144,13 +145,24 @@ class CatalogView(generics.ListAPIView):
 
 
 
-        # Применяем фильтры
+        # Применяем фильтры название в названии товара, описании, полном описании (в модели поля title, description, full_description)
         if filters.get('name'):
-            queryset = queryset.filter(title__icontains=filters['name'])
+            user_input = filters['name']
+            # Разбиваем на отдельные слова
+            search_words = user_input.split()
+            logger.info(f'Пользователь ищет по названию {user_input},{search_words}')
+            q_objects = Q()
+            for word in search_words:
+                q_objects |= Q(title__icontains=word) | Q(description__icontains=word) | Q(
+                    full_description__icontains=word)
+
+            queryset = queryset.filter(q_objects)
+            logger.info(f'Найдено по названию {queryset.count()}')
 
         if filters.get('minPrice'):
             try:
                 min_price = float(filters['minPrice'])
+                logger.info(f'Пользователь выбрал цену ОТ: {min_price}')
                 queryset = queryset.filter(price__gte=min_price)
             except (ValueError, TypeError):
                 pass
@@ -158,27 +170,41 @@ class CatalogView(generics.ListAPIView):
         if filters.get('maxPrice'):
             try:
                 max_price = float(filters['maxPrice'])
+                logger.info(f'Пользователь выбрал цену ДО {max_price}')
                 queryset = queryset.filter(price__lte=max_price)
             except (ValueError, TypeError):
                 pass
 
+
+
+        if filters.get('available') is not None:
+            logger.info(f'Пользователь выбрал фильтр Только товары в наличии')
+            if isinstance(filters['available'], str):
+                available_bool = filters['available'].lower() == 'true'
+            else:
+                available_bool = bool(filters['available'])
+            logger.info(f"Фильтр по наличию: {available_bool}")
+
+            if available_bool:
+                queryset = queryset.filter(count__gt=0) # только в наличии
+            else:
+                queryset = queryset.filter(count=0)
+            logger.info(f"После фильтра available: {queryset.count()} товаров")
+
+        # Фильтр по бесплатной доставке, фронтэнд по умолчанию высылает freeDelivery==false
         if filters.get('freeDelivery') is not None:
             if isinstance(filters['freeDelivery'], str):
                 free_delivery_bool = filters['freeDelivery'].lower() == 'true'
             else:
                 free_delivery_bool = bool(filters['freeDelivery'])
-            queryset = queryset.filter(free_delivery=free_delivery_bool)
 
-        if filters.get('available') is not None:
-            if isinstance(filters['available'], str):
-                available_bool = filters['available'].lower() == 'true'
+            # Фильтр если только true
+            if free_delivery_bool:
+                logger.info(f'Пользователь выбрал С бесплатной доставкой')
+                queryset = queryset.filter(free_delivery=True)
+                logger.info(f"После фильтра freeDelivery: {queryset.count()} товаров")
             else:
-                available_bool = bool(filters['available'])
-
-            if available_bool:
-                queryset = queryset.filter(count__gt=0)
-            else:
-                queryset = queryset.filter(count=0)
+                logger.info(f'Фильтр freeDelivery=false, игнорируем')
 
         # Сортировка
         sort_field = self.request.query_params.get('sort')
@@ -194,10 +220,12 @@ class CatalogView(generics.ListAPIView):
         if category_id:
             queryset = queryset.filter(category_id=category_id)
 
-        # Фильтр по тегам
-        tags_param = self.request.query_params.get('tags')
+        # Фильтр по тегам (фронтенд отправляет tags[])
+        tags_param = self.request.query_params.getlist('tags[]') or self.request.query_params.getlist('tags')
+
         if tags_param:
             try:
+                logger.info(f"Фильтрация по тегам: {tags_param}")
                 # Пробуем распарсить JSON
                 tags = json.loads(tags_param) if isinstance(tags_param, str) else tags_param
                 if isinstance(tags, list):
@@ -212,6 +240,8 @@ class CatalogView(generics.ListAPIView):
                         queryset = queryset.filter(tags__id__in=tag_ids).distinct()
             except (json.JSONDecodeError, ValueError) as e:
                 logger.warning(f"Ошибка парсинга tags: {e}")
+
+            logger.info(f"Итоговое количество товаров: {queryset.count()}")
 
         return queryset
 

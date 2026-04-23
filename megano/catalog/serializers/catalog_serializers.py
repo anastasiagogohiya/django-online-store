@@ -90,10 +90,11 @@ class CatalogSerializer(serializers.ModelSerializer):
 	reviews = serializers.IntegerField(source='reviews_count', read_only=True)
 	rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
 	freeDelivery = serializers.BooleanField(source='free_delivery', read_only=True)
+	name = serializers.CharField(source='title', read_only=True)
 
 	class Meta:
 		model = Product
-		fields = ['id', 'category', 'price', 'count', 'date', 'title', 'description',
+		fields = ['id', 'category', 'price', 'count', 'date', 'name', 'description',
 				  'freeDelivery', 'images', 'tags', 'reviews', 'rating']
 
 	@extend_schema_field(OpenApiTypes.OBJECT)

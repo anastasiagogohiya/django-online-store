@@ -37,30 +37,6 @@ def banners(request):
 	return JsonResponse(data, safe=False)
 
 
-
-def sales(request):
-	data = {
-		'items': [
-			{
-				"id": 123,
-				"price": 500.67,
-				"salePrice": 200.67,
-				"dateFrom": "05-08",
-				"dateTo": "05-20",
-				"title": "video card",
-				"images": [
-						{
-							"src": "https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg",
-							"alt": "hello alt",
-						}
-				 ],
-			}
-		],
-		'currentPage': randrange(1, 4),
-		'lastPage': 3,
-	}
-	return JsonResponse(data)
-
 def basket(request):
 	if(request.method == "GET"):
 		print('[GET] /api/basket/')

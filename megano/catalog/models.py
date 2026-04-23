@@ -86,7 +86,7 @@ class Specification(models.Model):
 class Product(SlugMixin, models.Model):
     """Класс с информацией по товарам"""
     title = models.CharField(max_length=100, verbose_name='Название товара')
-    category =  models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name="Категория")
+    category =  models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', db_index=True, verbose_name="Категория")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена товара')
 
     # наличие обновляется через сигнал в приложении orders (при создании/отмене заказа)
@@ -96,7 +96,7 @@ class Product(SlugMixin, models.Model):
     full_description = models.TextField(max_length=500, verbose_name='Полное описание товара', blank=True) # может быть пустым
     free_delivery = models.BooleanField(default=True, verbose_name='Бесплатная доставка')
     images = models.ManyToManyField(ProductImage, blank=True)
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, db_index=True)
     specifications = models.ManyToManyField(Specification, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0, verbose_name="Рейтинг товара")
     reviews_count = models.IntegerField(default=0, verbose_name='Количество отзывов')
