@@ -6,7 +6,7 @@ from catalog.views.categories_views import CategoriesView
 from catalog.views.catalog_views import CatalogView
 from catalog.views.popular_views import ProductsPopularView
 from catalog.views.limited_views import ProductsLimitedView
-
+from catalog.views.sales_views import SalesView
 
 # Нужно ли выносить эти пути по папкам проекта?
 
@@ -26,10 +26,10 @@ urlpatterns = [
     path('catalog/', CatalogView.as_view(), name='catalog'),
     path('products/popular/', ProductsPopularView.as_view(), name='products-popular'),
     path('products/limited/', ProductsLimitedView.as_view(), name='products-limited'),
-
+    path('sales/', SalesView.as_view(), name='sales'),
 
     #path('banners/', views.banners),
-    #path('sales/', views.sales),
+
     #path('basket/', views.basket),
     #path('orders/', views.orders),
     #path('product/<int:id>/', views.product),

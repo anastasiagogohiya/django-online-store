@@ -1,7 +1,8 @@
 """СЕРИАЛИЗАТОРЫ CatalogSerializer, CategorySerializer"""
 from rest_framework import serializers
 from catalog.models import Category, Product, Tag, ProductImage
-from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
 
 @extend_schema_serializer(
     examples=[
@@ -35,6 +36,7 @@ class CategorySerializer(serializers.ModelSerializer):
 		model = Category
 		fields = ['id', 'title', 'image'] # поле subcategories динамическое
 
+	@extend_schema_field(OpenApiTypes.OBJECT) # терминал писал предупрждение
 	def get_image(self, obj):
 		"""Возвращает словарь с src и alt для изображения"""
 		if obj.image and obj.image.name:
@@ -94,6 +96,7 @@ class CatalogSerializer(serializers.ModelSerializer):
 		fields = ['id', 'category', 'price', 'count', 'date', 'title', 'description',
 				  'freeDelivery', 'images', 'tags', 'reviews', 'rating']
 
+	@extend_schema_field(OpenApiTypes.OBJECT)
 	def get_images(self, obj):
 		"""Возвращает массив изображений"""
 		images_data = []

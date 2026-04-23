@@ -9,7 +9,7 @@ from django.utils.text import slugify
 from datetime import datetime, timedelta
 from django.core.files.base import ContentFile
 from PIL import Image, ImageDraw, ImageFont
-from catalog.models import Category, Tag, Specification, Product, Review, ProductImage
+from catalog.models import Category, Tag, Specification, Product, Review, ProductImage, Sale
 from app_users.models import Profile, Avatar
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -415,6 +415,58 @@ class Command(BaseCommand):
                 self.stdout.write(f'   📦 Создано {i + 1}/{products_count} товаров')
 
         self.stdout.write(f'   ✅ Создано {len(products)} товаров и {len(product_images_list)} изображений')
+
+
+
+        # --- 6. Распродажи (Sales) ---
+        self.stdout.write('🏷️ Добавляю распродажи для товаров...')
+
+        sales_created = 0
+        today = datetime.now().date()
+
+        for product in products:
+            # 40% товаров получают скидку
+            if random.random() < 0.4:
+                # Скидка от 10% до 70%
+                discount_percent = random.randint(10, 70)
+                sale_price = round(product.price * (1 - discount_percent / 100), 2)
+
+                # Генерируем даты распродажи
+                # Дата начала: от 30 дней назад до 30 дней вперед
+                start_offset = random.randint(-30, 30)
+                date_from = today + timedelta(days=start_offset)
+
+                # Длительность распродажи: от 7 до 60 дней
+                duration = random.randint(7, 60)
+                date_to = date_from + timedelta(days=duration)
+
+                # Создаем распродажу
+                sale, created = Sale.objects.get_or_create(
+                    product=product,
+                    defaults={
+                        'sale_price': sale_price,
+                        'date_from': date_from,
+                        'date_to': date_to,
+                    }
+                )
+
+                if created:
+                    sales_created += 1
+
+                    # Логируем первые 5 распродаж
+                    if sales_created <= 5:
+                        self.stdout.write(
+                            f'   🏷️ Товар "{product.title[:30]}..." - '
+                            f'цена: {product.price} → {sale_price} '
+                            f'(скидка {discount_percent}%), '
+                            f'период: {date_from} — {date_to}'
+                        )
+
+        self.stdout.write(f'   ✅ Создано {sales_created} распродаж')
+
+
+
+
 
         # --- 7. Отзывы ---
         self.stdout.write(f'💬 Создаю отзывы...')

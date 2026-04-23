@@ -127,6 +127,19 @@ class Product(SlugMixin, models.Model):
         return self.title
 
 
+class Sale(models.Model):
+    """Модель для распродажи"""
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='sale')
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена по скидке')
+    date_from = models.DateField(verbose_name='Дата начала')
+    date_to = models.DateField(verbose_name='Дата окончания')
+
+    class Meta:
+        verbose_name = "Распродажа"
+        verbose_name_plural = "Распродажи"
+
+
+
 class Review(models.Model):
     author = models.ForeignKey("app_users.Profile", on_delete=CASCADE, related_name='reviews')
     product = models.ForeignKey(Product, on_delete=CASCADE, related_name='reviews') # связь с продуктом, по которому сделан отзыв
