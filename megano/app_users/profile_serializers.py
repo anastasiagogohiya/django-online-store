@@ -59,11 +59,10 @@ class ProfileSerializer(serializers.ModelSerializer):
         if 'phone' in validated_data:
             instance.phone = validated_data['phone']
 
-        instance.save()
-
         # Обновляем email пользователя
         if 'email' in validated_data:
-            instance.user.email = validated_data['email']
-            instance.user.save()
+            instance.email = validated_data['email']
+
+        instance.save()
 
         return instance

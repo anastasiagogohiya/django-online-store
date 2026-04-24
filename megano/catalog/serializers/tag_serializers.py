@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from catalog.models import Category, Product, Tag, ProductImage
+from catalog.models import Tag
 
 
 class TagSerializer(serializers.ModelSerializer):

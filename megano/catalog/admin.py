@@ -46,7 +46,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'price', 'count', 'is_active',
+    list_display = ('id', 'title', 'category', 'price', 'count', 'is_active',
                     'is_limited', 'rating', 'purchase_count')
     list_filter = ('is_active', 'is_limited', 'category', 'free_delivery')
     search_fields = ('title', 'category__title', 'description')
