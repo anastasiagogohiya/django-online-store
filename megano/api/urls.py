@@ -8,6 +8,7 @@ from catalog.views.popular_views import ProductsPopularView
 from catalog.views.limited_views import ProductsLimitedView
 from catalog.views.sales_views import SalesView
 from catalog.views.tags_views import TagsView
+from catalog.views.banners_views import BannersView
 
 # Нужно ли выносить эти пути по папкам проекта?
 
@@ -29,7 +30,7 @@ urlpatterns = [
     path('products/popular/', ProductsPopularView.as_view(), name='products-popular'),
     path('products/limited/', ProductsLimitedView.as_view(), name='products-limited'),
     path('sales/', SalesView.as_view(), name='sales'),
-    #path('banners/', views.banners),
+    path('banners/', BannersView.as_view(), name='banners'),
 
     # tags
     path('tags/', TagsView.as_view(), name='tags'),

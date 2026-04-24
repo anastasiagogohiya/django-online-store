@@ -150,3 +150,16 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+
+
+class Banner(models.Model):
+    """В баннере откражается товар включенный в баннер"""
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='banner', verbose_name="Товар для баннера")
+
+
+    class Meta:
+        verbose_name = "Баннер"
+        verbose_name_plural = "Баннеры"
+
+    def __str__(self):
+        return f"Баннер: {self.product.title}"

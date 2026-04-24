@@ -3,6 +3,9 @@ from rest_framework import serializers
 from catalog.models import Category, Product, Tag, ProductImage
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
+from catalog.serializers.tag_serializers import TagSerializer
+from catalog.serializers.product_image_serializer import ProductImageSerializer
+
 
 @extend_schema_serializer(
     examples=[
@@ -63,24 +66,6 @@ class CategorySerializer(serializers.ModelSerializer):
 			).data
 
 		return data
-
-
-class ProductImageSerializer(serializers.ModelSerializer):
-	"""Сериализатор для изображений товара"""
-	src = serializers.ImageField(source='image', read_only=True)
-	alt = serializers.CharField(read_only=True)
-
-	class Meta:
-		model = ProductImage
-		fields = ['src', 'alt']
-
-
-class TagSerializer(serializers.ModelSerializer):
-	"""Сериализатор для тегов"""
-
-	class Meta:
-		model = Tag
-		fields = ['id', 'name']
 
 
 class CatalogSerializer(serializers.ModelSerializer):
