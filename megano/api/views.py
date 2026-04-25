@@ -38,42 +38,6 @@ def banners(request):
 
 
 
-def catalog(request):
-	print(request.GET)
-	price = request.GET.get('filter[maxPrice]')
-	print(price)
-	data = {
-		 "items": [
-				 {
-					 "id": 123,
-					 "category": 123,
-					 "price": price,
-					 "count": 12,
-					 "date": "Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard Time)",
-					 "title": "video card",
-					 "description": "description of the product",
-					 "freeDelivery": True,
-					 "images": [
-					 		{
-					 			"src": "https://www.wallpaperbetter.com/wallpaper/620/909/135/cute-gray-kitten-walk-grass-1080P-wallpaper-middle-size.jpg",
-					 			"alt": "hello alt",
-							}
-					 ],
-					 "tags": [
-					 		{
-					 			"id": 0,
-					 			"name": "Hello world"
-					 		}
-					 ],
-					 "reviews": 5,
-					 "rating": 4.6
-				 }
-		 ],
-		 "currentPage": randrange(1, 4),
-		 "lastPage": 3
-	 }
-	return JsonResponse(data)
-
 def productsPopular(request):
 	data = [
 		{

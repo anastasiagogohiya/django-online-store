@@ -16,7 +16,7 @@ class SlugMixin:
 class Category(SlugMixin, models.Model):
     """Категория товаров с доступными подкатегориями (до 2-х уровней)"""
     title = models.CharField(max_length=255, verbose_name="Название категории")
-    image = models.ImageField(upload_to='categories/', blank=True, null=True, verbose_name="Изображение категории") # можно оставить пустым
+    image = models.ImageField(upload_to='catalog/categories/', blank=True, null=True, verbose_name="Изображение категории") # можно оставить пустым
     slug = models.SlugField(unique=True, blank=True, verbose_name="URL")
 
     parent = models.ForeignKey(
@@ -65,7 +65,7 @@ class Tag(models.Model):
 
 
 class ProductImage(models.Model):
-    image = models.ImageField(upload_to='product_images/', verbose_name="Изображение товара")
+    image = models.ImageField(upload_to='catalog/product_images/', verbose_name="Изображение товара")
     alt = models.CharField(max_length=255, blank=True)
 
     class Meta:
@@ -88,6 +88,8 @@ class Product(SlugMixin, models.Model):
     title = models.CharField(max_length=100, verbose_name='Название товара')
     category =  models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name="Категория")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена товара')
+
+    # наличие обновляется через сигнал в приложении orders (при создании/отмене заказа)
     count = models.IntegerField(default=0, verbose_name='Наличие на складе')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания карточки товара')
     description = models.TextField(max_length=255, verbose_name='Краткое описание товара')
@@ -101,9 +103,11 @@ class Product(SlugMixin, models.Model):
     is_active = models.BooleanField(default=True, verbose_name='Активен')  # мягкое удаление
     is_limited = models.BooleanField(default=False, verbose_name='Ограниченный тираж',
                                      help_text="В Limited edition попадают до 16 товаров с галочкой Ограниченный тираж")  # в ограниченый тираж попадают до 16 товаров с галочкой ограниченный тираж
-    ordering_index = models.IntegerField(default=0, verbose_name='Индекс сортировки',
+    ordering_index = models.IntegerField(default=0, db_index=True ,verbose_name='Индекс сортировки',
                                          help_text="В каталог топ-товаров попадают 8 первых товаров по параметру индекс сортировки")
-    purchase_count = models.IntegerField(default=0, verbose_name='Количество покупок',
+
+    # кол-во покупок # количество покупок обновляется через сигнал в приложении orders (при изменении статуса заказа на оплачен/доставлен)
+    purchase_count = models.IntegerField(default=0, db_index=True, verbose_name='Количество покупок',
                                          help_text="Товары сортируются по популярности")  # по заданию товары сортируются по кол-ву покупок
     slug = models.SlugField(unique=True, blank=True)  # красивый вывод url
 

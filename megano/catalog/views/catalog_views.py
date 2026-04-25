@@ -1,18 +1,15 @@
 """ categories/, catalog/
 """
-from django.http import HttpRequest, HttpResponse
 import logging
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.views import APIView
-from django.db.models import Prefetch
+from rest_framework.permissions import AllowAny
 from rest_framework import serializers
 from drf_spectacular.utils import inline_serializer
-from catalog.serializers import CategorySerializer, CatalogSerializer, TagSerializer
+from catalog.serializers.catalog_serializers import CategorySerializer, CatalogSerializer, TagSerializer
 from catalog.models import Category, Product
 from rest_framework.response import Response
 from rest_framework import generics
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample, OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 import json
 
@@ -22,25 +19,6 @@ import json
 User = get_user_model()
 
 logger = logging.getLogger(__name__)
-
-
-class CategoriesView(APIView):
-    permission_classes = [AllowAny] # потом проверить
-
-    @extend_schema(summary="Получение списка категорий",
-                   responses={200: CategorySerializer(many=True)},
-                   tags=['catalog'])
-    def get(self, request: HttpRequest) -> HttpResponse:
-        # Получаем только корневые категории (где parent = null, (WHERE parent IS NULL))
-        # и предзагружаем подкатегории через related_name='subcategories'
-        categories = Category.objects.filter(parent__isnull=True).prefetch_related(
-            Prefetch('subcategories', queryset=Category.objects.all()),
-            Prefetch('subcategories__subcategories', queryset=Category.objects.all()),
-        )
-
-        serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data)
-
 
 
 # не получается пока в swagger первым полем фильтр сделать

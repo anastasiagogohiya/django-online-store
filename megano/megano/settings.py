@@ -46,6 +46,8 @@ INSTALLED_APPS = [
 
     'django_extensions',
 
+    'model_bakery',
+
     'app_users.apps.AppUsersConfig',
     'catalog.apps.CatalogConfig',
     'api',
