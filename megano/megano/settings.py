@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'api.middleware.CSRFExemptForTokenAuthMiddleware', # иначе проблемы с CsrfViewMiddleware
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -152,7 +153,19 @@ REST_FRAMEWORK = {"DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNum
               'django_filters.rest_framework.DjangoFilterBackend',
               'rest_framework.filters.OrderingFilter',
               'rest_framework.filters.SearchFilter',],
-          }
+          'DEFAULT_PERMISSION_CLASSES': [
+                'rest_framework.permissions.IsAuthenticated',],}
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,  # Swagger не будет отправлять куки
+    'SECURITY_DEFINITIONS': {
+        'Token': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+        }
+    }
+}
 
 # Swagger
 SPECTACULAR_SETTINGS = {

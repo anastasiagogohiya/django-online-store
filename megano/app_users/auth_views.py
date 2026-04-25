@@ -54,12 +54,12 @@ class SignInView(APIView):
 			json_string = list(request.data.keys())[0]  # фронтэнд отправляет строку, нужен первый индекс
 			data = json.loads(json_string)
 
-		print(f"Попытка входа.....")  # Для отладки
+		print(f"Попытка входа.....")
 		username = data.get("username")
 		password = data.get("password")
 
 
-		print(f"Попытка входа: username={username}")  # Для отладки
+		print(f"Попытка входа: username={username}")
 
 		user = authenticate(request, username=username, password=password)
 
@@ -69,11 +69,13 @@ class SignInView(APIView):
 			token, created = Token.objects.get_or_create(user=user)
 			return Response({
 				'token': token.key,
+				"sessionid": {request.session.session_key},
 				'user_id': user.id,
 				'username': user.username
 			}, status=status.HTTP_200_OK)
 		else:
 			return Response({'error': 'Неверный username или пароль'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 @extend_schema(
     summary="Регистрация нового пользователя",
@@ -132,7 +134,7 @@ class SignUpView(APIView):
 
 		user = User.objects.create_user(username=username,
 										password=password)
-		profile = Profile.objects.create(user=user, full_name=name)
+		profile, created = Profile.objects.get_or_create(user=user, full_name=name)
 
 		# логинимся и создаем токен для пользователя
 		login(request, user)

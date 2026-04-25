@@ -1,7 +1,11 @@
 """СЕРИАЛИЗАТОРЫ CatalogSerializer, CategorySerializer"""
 from rest_framework import serializers
 from catalog.models import Category, Product, Tag, ProductImage
-from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
+from catalog.serializers.tag_serializers import TagSerializer
+from catalog.serializers.product_image_serializer import ProductImageSerializer
+
 
 @extend_schema_serializer(
     examples=[
@@ -35,6 +39,7 @@ class CategorySerializer(serializers.ModelSerializer):
 		model = Category
 		fields = ['id', 'title', 'image'] # поле subcategories динамическое
 
+	@extend_schema_field(OpenApiTypes.OBJECT) # терминал писал предупрждение
 	def get_image(self, obj):
 		"""Возвращает словарь с src и alt для изображения"""
 		if obj.image and obj.image.name:
@@ -63,24 +68,6 @@ class CategorySerializer(serializers.ModelSerializer):
 		return data
 
 
-class ProductImageSerializer(serializers.ModelSerializer):
-	"""Сериализатор для изображений товара"""
-	src = serializers.ImageField(source='image', read_only=True)
-	alt = serializers.CharField(read_only=True)
-
-	class Meta:
-		model = ProductImage
-		fields = ['src', 'alt']
-
-
-class TagSerializer(serializers.ModelSerializer):
-	"""Сериализатор для тегов"""
-
-	class Meta:
-		model = Tag
-		fields = ['id', 'name']
-
-
 class CatalogSerializer(serializers.ModelSerializer):
 	"""Сериализатор для каталога"""
 	images = serializers.SerializerMethodField()
@@ -88,12 +75,14 @@ class CatalogSerializer(serializers.ModelSerializer):
 	reviews = serializers.IntegerField(source='reviews_count', read_only=True)
 	rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
 	freeDelivery = serializers.BooleanField(source='free_delivery', read_only=True)
+	name = serializers.CharField(source='title', read_only=True)
 
 	class Meta:
 		model = Product
-		fields = ['id', 'category', 'price', 'count', 'date', 'title', 'description',
+		fields = ['id', 'category', 'price', 'count', 'date', 'name', 'description',
 				  'freeDelivery', 'images', 'tags', 'reviews', 'rating']
 
+	@extend_schema_field(OpenApiTypes.OBJECT)
 	def get_images(self, obj):
 		"""Возвращает массив изображений"""
 		images_data = []

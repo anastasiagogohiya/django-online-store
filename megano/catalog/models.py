@@ -86,7 +86,7 @@ class Specification(models.Model):
 class Product(SlugMixin, models.Model):
     """Класс с информацией по товарам"""
     title = models.CharField(max_length=100, verbose_name='Название товара')
-    category =  models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name="Категория")
+    category =  models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', db_index=True, verbose_name="Категория")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена товара')
 
     # наличие обновляется через сигнал в приложении orders (при создании/отмене заказа)
@@ -96,7 +96,7 @@ class Product(SlugMixin, models.Model):
     full_description = models.TextField(max_length=500, verbose_name='Полное описание товара', blank=True) # может быть пустым
     free_delivery = models.BooleanField(default=True, verbose_name='Бесплатная доставка')
     images = models.ManyToManyField(ProductImage, blank=True)
-    tags = models.ManyToManyField(Tag, blank=True)
+    tags = models.ManyToManyField(Tag, blank=True, db_index=True)
     specifications = models.ManyToManyField(Specification, blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=2, default=0, verbose_name="Рейтинг товара")
     reviews_count = models.IntegerField(default=0, verbose_name='Количество отзывов')
@@ -127,6 +127,19 @@ class Product(SlugMixin, models.Model):
         return self.title
 
 
+class Sale(models.Model):
+    """Модель для распродажи"""
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='sale')
+    sale_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена по скидке')
+    date_from = models.DateField(verbose_name='Дата начала')
+    date_to = models.DateField(verbose_name='Дата окончания')
+
+    class Meta:
+        verbose_name = "Распродажа"
+        verbose_name_plural = "Распродажи"
+
+
+
 class Review(models.Model):
     author = models.ForeignKey("app_users.Profile", on_delete=CASCADE, related_name='reviews')
     product = models.ForeignKey(Product, on_delete=CASCADE, related_name='reviews') # связь с продуктом, по которому сделан отзыв
@@ -137,3 +150,16 @@ class Review(models.Model):
     class Meta:
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
+
+
+class Banner(models.Model):
+    """В баннере откражается товар включенный в баннер"""
+    product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='banner', verbose_name="Товар для баннера")
+
+
+    class Meta:
+        verbose_name = "Баннер"
+        verbose_name_plural = "Баннеры"
+
+    def __str__(self):
+        return f"Баннер: {self.product.title}"

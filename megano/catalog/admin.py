@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Tag, Specification, Review
+from .models import Category, Product, ProductImage, Tag, Specification, Review, Banner, Sale
 
 
 class ProductImageInline(admin.TabularInline):
@@ -46,7 +46,7 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'price', 'count', 'is_active',
+    list_display = ('id', 'title', 'category', 'price', 'count', 'is_active',
                     'is_limited', 'rating', 'purchase_count')
     list_filter = ('is_active', 'is_limited', 'category', 'free_delivery')
     search_fields = ('title', 'category__title', 'description')
@@ -142,3 +142,45 @@ class ReviewAdmin(admin.ModelAdmin):
         return obj.text[:50] + '...' if len(obj.text) > 50 else obj.text
 
     short_text.short_description = "Отзыв"
+
+
+@admin.register(Sale)
+class SaleAdmin(admin.ModelAdmin):
+    list_display = ('product', 'sale_price', 'date_from', 'date_to', 'is_active')
+    list_filter = ('date_from', 'date_to')
+    search_fields = ('product__title',)
+    list_editable = ('sale_price',)
+    date_hierarchy = 'date_from'
+    raw_id_fields = ('product',)
+
+    fieldsets = (
+        ('Товар и цена', {
+            'fields': ('product', 'sale_price')}),
+        ('Период действия', {
+            'fields': ('date_from', 'date_to')}),)
+
+    def is_active(self, obj):
+        """Показывает активна ли сейчас распродажа"""
+        from django.utils import timezone
+        today = timezone.now().date()
+        return obj.date_from <= today <= obj.date_to
+
+    is_active.boolean = True
+    is_active.short_description = "Активна"
+
+
+@admin.register(Banner)
+class BannerAdmin(admin.ModelAdmin):
+    list_display = ('product', 'product_price', 'product_category')
+    search_fields = ('product__title',)
+    raw_id_fields = ('product',)
+
+    def product_price(self, obj):
+        return obj.product.price
+
+    product_price.short_description = "Цена товара"
+
+    def product_category(self, obj):
+        return obj.product.category
+
+    product_category.short_description = "Категория"
