@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     'app_users.apps.AppUsersConfig',
     'catalog.apps.CatalogConfig',
+    'basket.apps.BasketConfig',
     'api',
 ]
 
@@ -173,6 +174,8 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API для интернет-магазина - дипломный проект",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    'COMPONENT_SPLIT_REQUEST': True,
+    'SCHEMA_PATH_PREFIX': '/api/',
 }
 
 
