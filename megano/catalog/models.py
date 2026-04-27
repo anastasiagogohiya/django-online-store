@@ -118,6 +118,11 @@ class Product(SlugMixin, models.Model):
         """True если есть в наличии (используется для фильтрации поиска)"""
         return self.count > 0
 
+    @property
+    def rounded_price(self):
+        """Цена с округлением до 2 знаков"""
+        return round(self.price, 2)
+
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
