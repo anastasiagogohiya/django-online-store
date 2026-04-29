@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'catalog.apps.CatalogConfig',
     'basket.apps.BasketConfig',
     'order.apps.OrderConfig',
+    'payment.apps.PaymentConfig',
     'api',
 ]
 

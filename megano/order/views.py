@@ -7,7 +7,7 @@ from .models import Order, OrderItem, OrderStatus
 from .serializers import OrderSerializer, CreateOrderSerializer
 from .serializers import OrderIdSerializer
 from basket.models import BasketItem, Basket
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.utils import OpenApiExample
 
 logger = logging.getLogger(__name__)
@@ -126,22 +126,18 @@ class OrderView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Добавляем товары в заказ
-        logger.info(f'НАЧАЛО ДОБАВЛЕНИЯ ТОВАРОВ В ЗАКАЗ #{new_order.id}')
         logger.info(f'Всего товаров для добавления: {len(products_data)}')
 
         for idx, item_data in enumerate(products_data, 1):
-            logger.info(f'=== Обработка товара {idx}/{len(products_data)} ===')
             logger.info(f'Данные товара: {item_data}')
 
             try:
-                # ПОЛУЧАЕМ REAL PRODUCT ID ИЗ BASKET ITEM
                 basket_item_id = item_data.get('id')  # Это ID записи в корзине (BasketItem.id)
                 quantity = item_data.get('count')
                 price_from_frontend = item_data.get('price')
 
                 logger.info(f'BasketItem ID: {basket_item_id}')
                 logger.info(f'Quantity: {quantity}')
-                logger.info(f'Price from frontend: {price_from_frontend}')
 
                 # Получаем реальный товар из базы данных по BasketItem
                 try:
@@ -154,13 +150,6 @@ class OrderView(APIView):
                     real_product_id = product.id
                     real_quantity = basket_item.count
                     real_price = product.price
-
-                    logger.info(f'Найден BasketItem:')
-                    logger.info(f'  - BasketItem ID: {basket_item.id}')
-                    logger.info(f'  - Real Product ID: {real_product_id}')
-                    logger.info(f'  - Product Title: {product.title}')
-                    logger.info(f'  - Product Price in DB: {real_price}')
-                    logger.info(f'  - Quantity in basket: {real_quantity}')
 
                     # Проверяем соответствие данных (лог предупреждения, но не блокируем)
                     if real_quantity != quantity:
@@ -191,24 +180,7 @@ class OrderView(APIView):
                     price_at_time=real_price  # Используем цену из БД
                 )
 
-                logger.info(f'✅ OrderItem УСПЕШНО создан!')
-                logger.info(f'  - ID OrderItem: {order_item.id}')
-                logger.info(f'  - Order ID: {order_item.order.id}')
-                logger.info(f'  - Product ID: {order_item.product.id}')
-                logger.info(f'  - Product Title: {order_item.product.title}')
-                logger.info(f'  - Quantity: {order_item.quantity}')
-                logger.info(f'  - Price: {order_item.price_at_time}')
-
-                # Проверяем, что запись действительно сохранилась в БД
-                logger.info(
-                    f'Проверка сохранения: OrderItem.objects.filter(id={order_item.id}).exists() = {OrderItem.objects.filter(id=order_item.id).exists()}')
-
             except Exception as e:
-                logger.error(f'❌ КРИТИЧЕСКАЯ ОШИБКА при добавлении товара (BasketItem ID: {item_data.get("id")}):')
-                logger.error(f'  - Тип ошибки: {type(e).__name__}')
-                logger.error(f'  - Текст ошибки: {str(e)}')
-                logger.error(f'  - Полный traceback:', exc_info=True)
-
                 # Логируем состояние БД перед удалением заказа
                 logger.info(f'Проверка заказа #{new_order.id} перед удалением:')
                 logger.info(f'  - Заказ существует: {Order.objects.filter(id=new_order.id).exists()}')
@@ -223,7 +195,7 @@ class OrderView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
-        logger.info(f'✅ ВСЕ ТОВАРЫ УСПЕШНО ДОБАВЛЕНЫ! Всего добавлено: {len(products_data)} товаров')
+        logger.info(f'ТОВАРЫ УСПЕШНО ДОБАВЛЕНЫ! Всего добавлено: {len(products_data)} товаров')
 
         # Очищаем корзину
         try:
@@ -355,11 +327,10 @@ class OrderDetailView(APIView):
             if serializer.is_valid():
                 serializer.save()
                 logger.info(f'Заказ #{id} успешно обновлен')
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response({'id': order.id}, status=status.HTTP_200_OK)
             else:
                 logger.error(f'Ошибка валидации: {serializer.errors}')
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except Order.DoesNotExist:
             return Response({"error": "Заказ не найден"}, status=status.HTTP_404_NOT_FOUND)
-

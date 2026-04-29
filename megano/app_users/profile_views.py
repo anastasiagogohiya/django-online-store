@@ -28,7 +28,11 @@ class ProfileView(APIView):
 	)
 	def get(self, request):
 		logger.info(f"GET /api/profile/ - User: {request.user.username}")
-		profile = Profile.objects.get(user=request.user) # объект
+		# profile = Profile.objects.get(user=request.user)
+		profile, created = Profile.objects.get_or_create(
+			user=request.user,
+			defaults={'full_name': request.user.username})
+
 		serializer = ProfileSerializer(profile) # объект в json
 		logger.debug(f"Profile data: {serializer.data}")
 		return Response(serializer.data) # отправка json в фронтэнд
@@ -44,7 +48,17 @@ class ProfileView(APIView):
 		logger.info(f"POST /api/profile/ - User: {request.user.username}")
 		logger.info(f"Received data: {request.data}")
 
-		profile = Profile.objects.get(user=request.user)
+		# profile = Profile.objects.get(user=request.user)
+
+		profile, created = Profile.objects.get_or_create(
+			user=request.user,
+			defaults={
+				'full_name': request.user.username,
+				'email': request.user.email or ''
+			}
+		)
+		if created:
+			logger.info(f"Created new profile for user: {request.user.username}")
 
 		print(f"VIEW: Текущий profile.full_name = '{profile.full_name}'")
 
