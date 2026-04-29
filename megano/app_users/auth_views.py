@@ -105,6 +105,8 @@ class SignInView(APIView):
 	tags=['auth'],
 )
 class SignUpView(APIView):
+	"""Регистрация пользователя с автоматическим созданием профиля.
+	При создании суперпользователя также создается профиль автоматически."""
 	permission_classes = [AllowAny] # любой чел может зарегистрироваться
 	def post(self, request: HttpRequest) -> HttpResponse:
 		# для swagger
@@ -118,6 +120,7 @@ class SignUpView(APIView):
 		name = data.get('fullName') or data.get('name')
 		username = data.get('username')
 		password = data.get('password')
+		is_superuser = data.get('is_superuser', False)  # добавляем флаг
 
 		# Проверка
 		if not all([name, username, password]):
@@ -131,16 +134,24 @@ class SignUpView(APIView):
 			return Response(
 				{'error': 'Пользователь с таким username уже существует'},
 				status=status.HTTP_400_BAD_REQUEST)
+		# автоматом создается профиль для суперпользователя и для других пользователей
+		if is_superuser:
+			user = User.objects.create_superuser(username=username, password=password)
 
-		user = User.objects.create_user(username=username,
+		else:
+			user = User.objects.create_user(username=username,
 										password=password)
-		profile, created = Profile.objects.get_or_create(user=user, full_name=name)
+		# Профиль автоматически создается (см. Модель receiver)
+		profile = user.profile
+		if name and profile.full_name != name:
+			profile.full_name = name
+			profile.save()
 
 		# логинимся и создаем токен для пользователя
 		login(request, user)
 		token = Token.objects.create(user=user)
 
-		return Response({"token": token.key,  "user_id": user.id,}, status=status.HTTP_201_CREATED)
+		return Response({"token": token.key,  "user_id": user.id,  "is_superuser": user.is_superuser}, status=status.HTTP_201_CREATED)
 
 
 @extend_schema(summary="Выход из системы, удаление токена",

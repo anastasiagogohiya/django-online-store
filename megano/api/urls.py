@@ -12,6 +12,7 @@ from catalog.views.banners_views import BannersView
 from catalog.views.product_views import ProductView
 from catalog.views.review_create_views import ReviewCreateView
 from basket.views import BasketView
+from order.views import OrderView, OrderDetailView
 
 # Нужно ли выносить эти пути по папкам проекта?
 
@@ -44,7 +45,10 @@ urlpatterns = [
     # basket
     path('basket/', BasketView.as_view(), name='basket'),
 
-    #path('orders/', views.orders),
-    #path('order/<int:id>/', views.order),
+    # order
+    path('orders/', OrderView.as_view(), name='orders'),
+    path('order/<int:id>/', OrderDetailView.as_view(), name='order_detail'),
+    path('order/<int:id>', OrderDetailView.as_view(), name='order_detail'),
+
     #path('payment/<int:id>/', views.payment),
 ]

@@ -335,19 +335,18 @@ class Command(BaseCommand):
             is_active=True,
         )
 
-        profiles = baker.make(
-            Profile,
-            _quantity=users_count,
-            user=iter(users),
-            full_name=lambda: f"{fake.first_name()} {fake.last_name()}",
-            email=lambda: fake.email(),
-            phone=generate_phone_number,
-            is_active=True,
-            avatar=default_avatar,
-            balance=lambda: round(random.uniform(0, 5000), 2),
-        )
+        self.stdout.write(f'   👤 Обновляю профили пользователей...')
+        for user in users:
+            # Профиль уже создан сигналом, просто обновляем поля
+            profile = user.profile
+            profile.full_name = f"{user.first_name} {user.last_name}"
+            profile.email = user.email
+            profile.phone = generate_phone_number()
+            profile.avatar = default_avatar
+            profile.balance = round(random.uniform(0, 5000), 2)
+            profile.save()
 
-        self.stdout.write(f'   ✅ Создано {len(profiles)} профилей')
+        self.stdout.write(f'   ✅ Обновлено {users_count} профилей')
 
         # --- 6. Товары ---
         self.stdout.write(f'📦 Создаю {products_count} товаров с изображениями...')
@@ -574,33 +573,52 @@ class Command(BaseCommand):
         self.stdout.write(f'   ✅ Создано {sales_created} распродаж')
 
         # --- 9. Отзывы ---
-        self.stdout.write(f'💬 Создаю отзывы...')
+        self.stdout.write('💬 Создаю отзывы...')
+
+        # Получаем список всех профилей (так как author связан с Profile)
+        all_profiles = list(Profile.objects.all())
+        all_products = list(Product.objects.all())
 
         reviews_created = 0
-        for product in products:
-            num_reviews = random.randint(0, reviews_per_product * 2)
+        reviews_per_product = options['reviews_per_product']
 
-            for _ in range(num_reviews):
-                start_date = datetime.now() - timedelta(days=180)
-                end_date = datetime.now()
+        for product in all_products:
+            num_reviews = random.randint(1, reviews_per_product * 2)
 
+            # Выбираем случайных авторов (профили)
+            potential_authors = random.sample(all_profiles, min(num_reviews, len(all_profiles)))
+
+            for author in potential_authors:
                 review = baker.make(
                     Review,
                     product=product,
-                    author=random.choice(profiles),
-                    text=fake.paragraph(nb_sentences=random.randint(2, 4))[:500],
-                    rate=random.randint(1, 5),
-                    date=fake.date_time_between(start_date=start_date, end_date=end_date),
+                    author=author,  # связь с Profile
+                    text=fake.paragraph(nb_sentences=random.randint(1, 5)),
+                    rate=random.randint(1, 5),  # поле называется rate, не rating!
+                    date=fake.date_time_between(start_date='-1y', end_date='now'),
+                    # is_active - нет такого поля
                 )
                 reviews_created += 1
 
-            if product.reviews.count() > 0:
-                avg_rating = product.reviews.aggregate(models.Avg('rate'))['rate__avg']
+        # Обновляем рейтинг товаров после создания отзывов
+        for product in all_products:
+            reviews = product.reviews.all()
+            if reviews.exists():
+                # Вычисляем средний рейтинг
+                avg_rating = sum(r.rate for r in reviews) / reviews.count()
                 product.rating = round(avg_rating, 2)
-                product.reviews_count = product.reviews.count()
-                product.save(update_fields=['rating', 'reviews_count'])
+                product.reviews_count = reviews.count()
+                product.save()
 
         self.stdout.write(f'   ✅ Создано {reviews_created} отзывов')
+
+
+
+
+
+
+
+
 
         # --- ИТОГ ---
         self.stdout.write(self.style.SUCCESS(

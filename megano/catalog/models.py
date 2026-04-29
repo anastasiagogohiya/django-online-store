@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import CASCADE
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 class SlugMixin:
     """Миксин для авто создания slug (красивый url)
@@ -72,6 +73,9 @@ class ProductImage(models.Model):
         verbose_name = "Изображение"
         verbose_name_plural = "Изображения"
 
+    def __str__(self):
+        return f'Изображение {self.image} {self.alt}'
+
 
 class Specification(models.Model):
     """Спецификация (размер например)"""
@@ -81,6 +85,9 @@ class Specification(models.Model):
     class Meta:
         verbose_name = "Спецификация"
         verbose_name_plural = "Спецификации"
+
+    def __str__(self):
+        return f"Спецификация: {self.name} {self.value}"
 
 
 class Product(SlugMixin, models.Model):
@@ -112,6 +119,18 @@ class Product(SlugMixin, models.Model):
     slug = models.SlugField(unique=True, blank=True)  # красивый вывод url
 
     # reviews удалила
+    @property
+    def current_price(self):
+        """Текущая цена с учетом активной распродажи"""
+        if hasattr(self, 'sale') and self.sale and self.sale.is_active:
+            return self.sale.sale_price
+        return self.price
+
+    @property
+    def has_active_sale(self):
+        """Проверяет, есть ли активная распродажа на товар"""
+        return hasattr(self, 'sale') and self.sale and self.sale.is_active
+
 
     @property
     def available(self):
@@ -143,6 +162,15 @@ class Sale(models.Model):
         verbose_name = "Распродажа"
         verbose_name_plural = "Распродажи"
 
+    @property
+    def is_active(self):
+        """Проверяет, активна ли распродажа сейчас"""
+        today = timezone.now().date()
+        return self.date_from <= today <= self.date_to
+
+    def get_price(self):
+        """Возвращает цену с учетом скидки"""
+        return self.sale_price if self.is_active else self.product.price
 
 
 class Review(models.Model):

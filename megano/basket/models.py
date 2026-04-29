@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F
 from app_users.models import Profile
 from catalog.models import Product
 
@@ -19,6 +19,16 @@ class Basket(models.Model):
         if self.profile:
             return f"Корзина {self.profile.user.username}"
         return f"Корзина (сессия: {self.session_key})"
+
+    def get_total_price(self):
+        """Общая стоимость корзины"""
+        total = self.items.aggregate(
+            total=Sum(F('product__price') * F('count')))['total'] or 0
+        return round(total, 2)
+
+    def get_total_items(self):
+        """Общее количество товаров в корзине"""
+        return self.items.aggregate(total=Sum('count'))['total'] or 0
 
 
 class BasketItem(models.Model):

@@ -5,6 +5,8 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 """Регистрация и авторизация по username"""
 class Avatar(models.Model):
@@ -45,3 +47,30 @@ class Profile(models.Model):
     def get_name(self) -> str:
         """Возвращает имя пользователя"""
         return self.full_name
+
+"""Автосоздание профиля"""
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    """
+    Сигнал: автоматически создает профиль при создании нового пользователя.
+    Срабатывает при любом способе создания пользователя.
+    """
+    if created:
+        Profile.objects.get_or_create(
+            user=instance,
+            defaults={'full_name': instance.username or f"User_{instance.id}"})
+        print(f"Создан профиль для пользователя: {instance.username}")
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    """
+    Сигнал: сохраняет профиль при сохранении пользователя.
+    """
+    if hasattr(instance, 'profile'):
+        instance.profile.save()
+    else:
+        # Если профиля нет по какой-то причине, создаем его
+        Profile.objects.get_or_create(
+            user=instance,
+            defaults={'full_name': instance.username or f"User_{instance.id}"})

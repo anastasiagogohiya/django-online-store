@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'app_users.apps.AppUsersConfig',
     'catalog.apps.CatalogConfig',
     'basket.apps.BasketConfig',
+    'order.apps.OrderConfig',
     'api',
 ]
 
