@@ -2,7 +2,6 @@
 """
 from rest_framework.views import APIView
 from catalog.models import Product
-from rest_framework.permissions import AllowAny
 from django.http import HttpRequest, HttpResponse
 import logging
 from drf_spectacular.utils import extend_schema
@@ -11,6 +10,9 @@ from catalog.serializers.catalog_serializers import CatalogSerializer
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiExample
 from django.core.cache import cache
+from megano.permissions import AllowAll
+from megano.decorators import catch_all_errors
+
 
 
 User = get_user_model()
@@ -23,8 +25,10 @@ logger = logging.getLogger(__name__)
 
 
 class ProductsPopularView(APIView):
-    permission_classes = [AllowAny] # могут просматривать все
+    permission_classes = [AllowAll] # могут просматривать все
     serializer_class = CatalogSerializer
+    LIMITED_COUNT = 8  # максимум товаров
+    CACHE_TIME = 3600  # 1 час
 
     @extend_schema(
         summary="Получение популярных товаров (8 самых покупаемых)",
@@ -61,6 +65,7 @@ class ProductsPopularView(APIView):
             ),
         ]
     )
+    @catch_all_errors
     def get(self, request: HttpRequest) -> HttpResponse:
         """
         В каталог топ-товаров попадают восемь первых товаров по параметру «индекс
@@ -69,10 +74,8 @@ class ProductsPopularView(APIView):
         """
         logger.info("GET запрос на получение списка популярных товаров")
 
-        limit = 8 # указала по ТЗ
-
         # данные кэша
-        cache_key = f'popular_products_limit{limit}'
+        cache_key = f'popular_products_limit_{self.LIMITED_COUNT}'
         cache_data = cache.get(cache_key)
 
         # если есть данные в кэше, то достаем
@@ -81,15 +84,12 @@ class ProductsPopularView(APIView):
             return Response(cache_data)
 
         # только активные тов по индексу сортировки убыванию покупок
-        popular_products = Product.objects.filter(is_active=True).order_by('-ordering_index', '-purchase_count')[:limit]
+        popular_products = Product.objects.filter(is_active=True).order_by('-ordering_index', '-purchase_count')[:self.LIMITED_COUNT]
 
         serializer = CatalogSerializer(popular_products, many=True)
-        # В кэше храним 1 час
-        cache.delete(cache_key)
-        cache.set(cache_key, serializer.data, 0)
 
-        if popular_products:
-            logger.info(f"Найдено {len(popular_products)} популярных товаров")
-            for i, product in enumerate(popular_products[:limit], 1):
-                logger.info(f"{i}. {product.title} - {product.purchase_count} покупок")
+        cache.set(cache_key, serializer.data, self.CACHE_TIME)
+
+        logger.info(f"Найдено {popular_products.count()} популярных товаров")
+
         return Response(serializer.data)

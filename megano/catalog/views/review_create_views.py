@@ -1,17 +1,19 @@
 import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiExample
 from catalog.models import Product, Review
 from app_users.models import Profile
-from catalog.serializers.review_serializers import ReviewCreateSerializer
-
+from catalog.serializers.review_serializers import ReviewCreateSerializer, ReviewSerializer, ReviewGetSerializer
+from megano.permissions import IsAuth, AllowAll
+from django.shortcuts import get_object_or_404
+from django.core.cache import cache
+from megano.decorators import catch_all_errors
 
 logger = logging.getLogger(__name__)
 
 class ReviewCreateView(APIView):
-    permission_classes = [IsAuthenticated] # отзыв могут оставлять авторизованные
+    permission_classes = [AllowAll]
 
     @extend_schema(
         summary="Создание отзыва на товар",
@@ -31,14 +33,12 @@ class ReviewCreateView(APIView):
             ),
         ]
     )
-    def post(self, request, id):
+    @catch_all_errors
+    def post(self, request, id: int) -> Response:
         logger.info(f"Создание отзыва на товар ID: {id}")
 
         # Проверяем товар
-        try:
-            product = Product.objects.get(id=id)
-        except Product.DoesNotExist:
-            return Response({"error": "Товар не найден"}, status=404)
+        product = get_object_or_404(Product, id=id)
 
         # Проверяем профиль
         try:
@@ -61,4 +61,29 @@ class ReviewCreateView(APIView):
             rate=serializer.validated_data['rate'])
 
         logger.info(f"Отзыв создан: ID={review.id}")
-        return Response(ReviewCreateSerializer(review).data, status=201)
+
+        # Очищаем кэш товара иначе отзыва нового не видно
+        cache_key = f'product_detail_{id}'
+        cache.delete(cache_key)
+        logger.info(f"Кэш товара {id} очищен")
+
+        # Также очистить кэш популярных и ограниченных товаров
+        cache.delete('popular_products_limit_8')
+        cache.delete('products_limited_limit_16')
+
+        return Response(ReviewSerializer(review).data, status=200)
+
+    @extend_schema(
+        summary="Получение отзывов на товар",
+        tags=['product'],
+        responses=ReviewGetSerializer(many=True)
+    )
+    @catch_all_errors
+    def get(self, request, id: int) -> Response:
+        logger.info(f"Получение отзывов на товар ID: {id}")
+
+        product = get_object_or_404(Product, id=id)
+        reviews = Review.objects.filter(product=product).order_by('-date')
+
+        serializer = ReviewGetSerializer(reviews, many=True)
+        return Response(serializer.data)

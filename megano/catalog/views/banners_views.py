@@ -5,6 +5,7 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from catalog.models import Banner
 from catalog.serializers.banners_serializers import BannerSerializer
+from megano.decorators import catch_all_errors
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class BannersView(APIView):
         tags=['catalog'],
         responses=BannerSerializer(many=True)
     )
+    @catch_all_errors
     def get(self, request):
         logger.info("Получение списка баннеров...")
 

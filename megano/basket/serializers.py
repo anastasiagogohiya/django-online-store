@@ -200,8 +200,8 @@ class BasketItemDetailSerializer(serializers.ModelSerializer):
 				  'description', 'freeDelivery', 'images', 'tags', 'reviews', 'rating']
 
 	def get_price(self, obj):
-		"""Возвращает округленную цену из модели, есть проперти"""
-		return obj.product.rounded_price
+		"""Возвращает актуальную цену товара (в моделе продукта свойство)"""
+		return obj.product.current_price
 
 	def get_images(self, obj):
 		"""Возвращает массив изображений продукта с полными URL"""

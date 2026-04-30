@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Sum
+from django.db.models import Sum, F
 from app_users.models import Profile
 from catalog.models import Product
 
@@ -20,6 +20,25 @@ class Basket(models.Model):
             return f"Корзина {self.profile.user.username}"
         return f"Корзина (сессия: {self.session_key})"
 
+    def attach_profile(self, profile):
+        """Прикрепление профиля к корзине на уровне модели"""
+        if profile and not self.profile:
+            self.profile = profile
+            self.save(update_fields=['profile'])
+            return True
+        return False
+
+    def get_total_price(self):
+        """Общая цена с учетом актуальной цены"""
+        total = 0
+        for item in self.items.select_related('product__sale'):
+            total += item.product.current_price * item.count # с учетом распродажной цены
+        return round(total, 2)
+
+    def get_total_items(self):
+        """Общее количество товаров в корзине"""
+        return self.items.aggregate(total=Sum('count'))['total'] or 0
+
 
 class BasketItem(models.Model):
     """Товар в корзине"""
@@ -38,8 +57,4 @@ class BasketItem(models.Model):
     @property
     def total_price(self):
         """Стоимость товара с учётом количества"""
-        return round(self.product.price * self.count, 2)
-
-    def get_total_items(self):
-        """Общее количество товаров в корзине"""
-        return self.items.aggregate(total=Sum('count'))['total'] or 0
+        return round(self.product.current_price * self.count, 2) # с учетом распродажной цены

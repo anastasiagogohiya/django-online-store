@@ -2,7 +2,6 @@
 """
 from rest_framework.views import APIView
 from catalog.models import Product
-from rest_framework.permissions import AllowAny
 from django.http import HttpRequest, HttpResponse
 import logging
 from drf_spectacular.utils import extend_schema
@@ -11,6 +10,8 @@ from catalog.serializers.catalog_serializers import CatalogSerializer
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiExample
 from django.core.cache import cache
+from megano.permissions import AllowAll
+from megano.decorators import catch_all_errors
 
 
 User = get_user_model()
@@ -22,8 +23,10 @@ logger = logging.getLogger(__name__)
 интерфейса, который показывает товары в виде прокручиваемой ленты"""
 
 class ProductsLimitedView(APIView):
-    permission_classes = [AllowAny] # могут просматривать все
+    permission_classes = [AllowAll] # могут просматривать все
     serializer_class = CatalogSerializer
+    LIMITED_COUNT = 16  # максимум товаров
+    CACHE_TIME = 3600  # 1 час
 
     @extend_schema(
         summary="Получение товаров Ограниченного тиража",
@@ -58,18 +61,16 @@ class ProductsLimitedView(APIView):
                     }
 	]
             ),
-        ]
-    )
+        ])
+    @catch_all_errors
     def get(self, request: HttpRequest) -> HttpResponse:
         """В блок «Ограниченный тираж» попадают до 16 товаров с галочкой
         «ограниченный тираж». Отображаются эти товары в виде слайдера."""
 
         logger.info("GET запрос на получение списка товаров Ограниченного тиража")
 
-        limit = 16
-
         # данные кэша
-        cache_key = f'products_limited_limit{limit}'
+        cache_key = f'products_limited_limit_{self.LIMITED_COUNT}'
         cache_data = cache.get(cache_key)
 
         # если есть данные в кэше, то достаем
@@ -78,23 +79,12 @@ class ProductsLimitedView(APIView):
             return Response(cache_data)
 
         # достает из БД лимитированные товары, сортировку поставила как для popular товаров
-        limited_products = Product.objects.filter(is_active=True, is_limited=True).order_by('-ordering_index', '-purchase_count')[:limit]  # сортировка для слайдера
+        limited_products = Product.objects.filter(is_active=True, is_limited=True).order_by('-ordering_index', '-purchase_count')[:self.LIMITED_COUNT]  # сортировка для слайдера
         serializer = CatalogSerializer(limited_products, many=True)
 
         # В кэше храним 1 час
-        cache.delete(cache_key)
-        cache.set(cache_key, serializer.data, 0)
+        cache.set(cache_key, serializer.data, self.CACHE_TIME)
 
-        if limited_products:
-            logger.info(f"Найдено {len(limited_products)} товаров ограниченного тиража")
-            for i, product in enumerate(limited_products[:limit], 1):
-                logger.info(f"{i}. {product.title} - {product.is_limited}")
+        logger.info(f"Найдено {limited_products.count()} товаров ограниченного тиража")
+
         return Response(serializer.data)
-
-
-
-
-
-
-
-

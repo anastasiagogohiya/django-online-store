@@ -103,4 +103,3 @@ class CatalogSerializer(serializers.ModelSerializer):
 			})
 
 		return images_data
-

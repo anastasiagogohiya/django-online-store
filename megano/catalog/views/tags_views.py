@@ -1,16 +1,19 @@
 from rest_framework.views import APIView
 import logging
-from rest_framework.permissions import AllowAny
 from catalog.models import Product, Tag, Category
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from catalog.serializers.catalog_serializers import TagSerializer
+from megano.permissions import AllowAll
+from megano.decorators import catch_all_errors
+
 
 
 logger = logging.getLogger(__name__)
 
 class TagsView(APIView):
-    permission_classes = [AllowAny]
+    """Класс получения тегов по categoryId"""
+    permission_classes = [AllowAll]
 
     @extend_schema(
         summary="Получение тегов",
@@ -27,23 +30,29 @@ class TagsView(APIView):
         ],
         responses={200: TagSerializer(many=True)},
     )
-    def get(self, request):
+    @catch_all_errors
+    def get(self, request) -> Response:
         category_id = request.query_params.get('category')
-        logger.info(f"GET запрос на получение тегов по categoryId {category_id}")
+        logger.info(f"GET запрос на получение тегов по categoryId: {category_id}")
 
-        tags = Tag.objects.all() # выгружаем все тэги
+        tags = Tag.objects.all()
 
         if category_id:
-            # Проверяем существование категории, так как может не быть
-            category_exists = Category.objects.filter(id=category_id).exists()
-            logger.info(f"Категория {category_id}: существует={category_exists}")
+            # Валидируем category_id
+            category_id = int(category_id)
 
-            # Получаем теги через Product
-            tags = tags.filter(product__category_id=category_id).distinct().order_by('id')
+            # Проверяем существование категории
+            if not Category.objects.filter(id=category_id).exists():
+                logger.warning(f"Категория {category_id} не найдена")
+                return Response([])  # возвращаем пустой список
 
-            # Логируем результат чтобы убедиться что правильные теги выдает
-            tag_names = list(tags.values_list('name', flat=True))
-            logger.info(f"Категория {category_id}: найдено тегов={len(tag_names)}, список={tag_names}")
+            # Получаем теги через товары категории
+            tags = tags.filter(
+                product__category_id=category_id,
+                product__is_active=True  # только активные товары
+            ).distinct().order_by('id')
+
+            logger.info(f"Категория {category_id}: найдено тегов={tags.count()}")
 
         serializer = TagSerializer(tags, many=True)
         return Response(serializer.data)

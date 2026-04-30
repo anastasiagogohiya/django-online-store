@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from catalog.models import Category, Product, Tag, ProductImage
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
 from catalog.serializers.tag_serializers import TagSerializer
 from catalog.serializers.product_image_serializer import ProductImageSerializer
-
+from catalog.models import Banner
 
 @extend_schema_serializer(
     examples=[
@@ -62,6 +61,13 @@ class BannerSerializer(serializers.ModelSerializer):
         # Используем ProductImageSerializer и передаем контекст
         serializer = ProductImageSerializer(first_image, context=self.context)
         return [serializer.data]
+
+
+class BannerImageSerializer(serializers.ModelSerializer):
+    """Сериализатор для изображений баннера"""
+    class Meta:
+        model = Banner
+        fields = ['src']
 
 
 

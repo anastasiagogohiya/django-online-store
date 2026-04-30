@@ -28,7 +28,7 @@ class ProfileInline(admin.StackedInline):
     verbose_name_plural = 'Профиль'
     fieldsets = (
         ('Основная информация', {
-            'fields': ('full_name', 'email', 'phone', 'balance')
+            'fields': ('full_name', 'phone', 'balance')
         }),
         ('Статус', {
             'fields': ('is_active',)
@@ -41,10 +41,10 @@ class ProfileInline(admin.StackedInline):
 
 class ProfileAdmin(admin.ModelAdmin):
     """Админка для профилей пользователей"""
-    list_display = ('id', 'user', 'full_name', 'email', 'phone', 'is_active', 'balance', 'avatar_preview')
+    list_display = ('id', 'user', 'full_name', 'get_user_email', 'phone', 'is_active', 'balance', 'avatar_preview')
     list_display_links = ('id', 'user', 'full_name')
     list_filter = ('is_active',)
-    search_fields = ('user__username', 'user__email', 'full_name', 'phone', 'email')
+    search_fields = ('user__username', 'full_name', 'phone')
     list_editable = ('is_active',)
     readonly_fields = ('get_avatar_preview',)
 
@@ -53,7 +53,7 @@ class ProfileAdmin(admin.ModelAdmin):
             'fields': ('user', 'get_avatar_preview')
         }),
         ('Личная информация', {
-            'fields': ('full_name', 'email', 'phone')
+            'fields': ('full_name', 'phone')
         }),
         ('Аватар', {
             'fields': ('avatar',)
@@ -65,6 +65,13 @@ class ProfileAdmin(admin.ModelAdmin):
             'fields': ('is_active',)
         }),
     )
+
+    def get_user_email(self, obj):
+        """Получить email из связанного пользователя"""
+        return obj.user.email
+
+    get_user_email.short_description = "Email"
+    get_user_email.admin_order_field = 'user__email'
 
     def avatar_preview(self, obj):
         """Превью аватара в списке"""
@@ -84,15 +91,7 @@ class ProfileAdmin(admin.ModelAdmin):
     get_avatar_preview.allow_tags = True
     get_avatar_preview.short_description = "Текущий аватар"
 
-    def save_model(self, request, obj, form, change):
-        """При сохранении профиля синхронизируем email с моделью User"""
-        if obj.email:
-            obj.user.email = obj.email
-            obj.user.save()
-        super().save_model(request, obj, form, change)
 
-
-# Расширяем стандартную админку пользователя
 class CustomUserAdmin(UserAdmin):
     """Кастомная админка пользователя с встроенным профилем"""
     inlines = (ProfileInline,)

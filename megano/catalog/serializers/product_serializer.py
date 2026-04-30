@@ -67,6 +67,8 @@ class ProductSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
     specifications = SpecificationSerializer(many=True, read_only=True)  # ← была проблема с отступом
+    # Переопределяем поле price
+    price = serializers.SerializerMethodField()
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     freeDelivery = serializers.BooleanField(source='free_delivery', read_only=True)
@@ -77,6 +79,10 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = ['id', 'category', 'price', 'count', 'date', 'title', 'description',
                   'fullDescription', 'freeDelivery', 'images', 'tags', 'reviews',
                   'specifications', 'rating']
+
+    def get_price(self, obj):
+        """Возвращает цену с учетом активной распродажи, иначе возвращается старая цена"""
+        return obj.current_price # метод в модели у меня такой
 
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_images(self, obj):
