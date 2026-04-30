@@ -4,35 +4,33 @@ profile/:
 from drf_spectacular.utils import extend_schema
 import logging
 from rest_framework import status
+from rest_framework.request import Request
 from django.contrib.auth import get_user_model
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from app_users.models import Profile, Avatar
-
-from app_users.profile_serializers import ProfileSerializer
-
+from app_users.profile_serializers import ProfileSerializer, AvatarUploadSerializer
+from megano.permissions import IsAuth
+from app_users.utils import get_profile
+from megano.decorators import catch_all_errors
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
 class ProfileView(APIView):
-	permission_classes = [IsAuthenticated] # только для авторизованных пользователей
+	permission_classes = [IsAuth] # только для авторизованных пользователей
 
 	@extend_schema(
 		summary="Получение профиля",
 		responses={200: ProfileSerializer},
 		tags=['profile'],
 	)
-	def get(self, request):
+	@catch_all_errors
+	def get(self, request: Request) -> Response:
 		logger.info(f"GET /api/profile/ - User: {request.user.username}")
-		# profile = Profile.objects.get(user=request.user)
-		profile, created = Profile.objects.get_or_create(
-			user=request.user,
-			defaults={'full_name': request.user.username})
-
+		profile = get_profile(request.user)
 		serializer = ProfileSerializer(profile) # объект в json
 		logger.debug(f"Profile data: {serializer.data}")
 		return Response(serializer.data) # отправка json в фронтэнд
@@ -43,32 +41,19 @@ class ProfileView(APIView):
 		responses={200: ProfileSerializer, 400: None},
 		tags=['profile'],
 	)
-	def post(self, request):
+	@catch_all_errors
+	def post(self, request: Request) -> Response:
 		"""В данном методе не ловится avatar, в сериализаторе read_only=True"""
 		logger.info(f"POST /api/profile/ - User: {request.user.username}")
-		logger.info(f"Received data: {request.data}")
 
-		# profile = Profile.objects.get(user=request.user)
-
-		profile, created = Profile.objects.get_or_create(
-			user=request.user,
-			defaults={
-				'full_name': request.user.username,
-				'email': request.user.email or ''
-			}
-		)
-		if created:
-			logger.info(f"Created new profile for user: {request.user.username}")
-
-		print(f"VIEW: Текущий profile.full_name = '{profile.full_name}'")
-
+		profile = get_profile(request.user)
 		serializer = ProfileSerializer(profile, data=request.data, partial=True)
 
 		if serializer.is_valid(): # проверка данных от пользователя
 			serializer.save()
 			logger.info(f"Profile updated successfully for user: {request.user.username}")
-			logger.debug(f"Updated data: {serializer.data}")
 			return Response(serializer.data)
+
 		return Response({"message": "Введите корректные данные."}, serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -99,8 +84,10 @@ class ProfileView(APIView):
     tags=['profile'],
 )
 class ProfilePasswordView(APIView):
-	permission_classes = [IsAuthenticated] # только для авторизованный пользователей
-	def post(self, request):
+	permission_classes = [IsAuth] # только для авторизованный пользователей
+
+	@catch_all_errors
+	def post(self, request: Request) -> Response:
 		logger.info(f"POST /api/profile/password/ - User: {request.user.username}")
 
 		user = request.user # юзер из токена
@@ -127,7 +114,7 @@ class ProfilePasswordView(APIView):
 		'multipart/form-data': {
 			'type': 'object',
 			'properties': {
-				'file': {
+				'avatar': {
 					'type': 'string',
 					'format': 'binary',
 					'description': 'Файл изображения'
@@ -137,7 +124,7 @@ class ProfilePasswordView(APIView):
 					'description': 'Описание изображения'
 				}
 			},
-			'required': ['file']
+			'required': ['avatar']
 		}
 	},
 	responses={
@@ -158,22 +145,34 @@ class ProfilePasswordView(APIView):
 	tags=['profile'],
 )
 class ProfileAvatarUploadView(APIView):
-	permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuth]
 	parser_classes = [MultiPartParser, FormParser]  # для загрузки файлов
 
-	def post(self, request):
-		file = request.FILES.get('avatar')
-		if not file:
-			return Response({'error': 'Нет файла'}, status=status.HTTP_400_BAD_REQUEST)
+	@catch_all_errors
+	def post(self, request: Request) -> Response:
+		logger.info(f'Пользователь пытается загрузить аватар...')
+		serializer = AvatarUploadSerializer(data=request.data)
+		if not serializer.is_valid():
+			return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+		validated_data = serializer.validated_data
+		file = validated_data['avatar']
+		alt = validated_data.get('alt', '')
+
+		profile = Profile.objects.get(user=request.user)
+
+		# удаляем старый аватар, иначе он засоряет БД
+		if profile.avatar:
+			old_avatar = profile.avatar
+			profile.avatar = None  # разрываем связь
+			profile.save()  # сохраняем профиль
+			old_avatar.delete()
 
 		# Создаем аватар
 		avatar = Avatar.objects.create(
 			src=file,
-			alt=request.data.get('alt', '')
-		)
+			alt=request.data.get('alt', ''))
 
-		# Привязываем к профилю
-		profile = Profile.objects.get(user=request.user)
 		profile.avatar = avatar
 		profile.save()
 

@@ -9,13 +9,16 @@ from django.contrib.auth import get_user_model
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
-import json
+from app_users.utils import parse_request_data
+import logging
 from app_users.models import Profile, Avatar
+from megano.permissions import AllowAll, IsAuth
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
+
 
 
 @extend_schema(
@@ -45,21 +48,14 @@ User = get_user_model()
 	tags=['auth'],
 )
 class SignInView(APIView):
-	permission_classes = [AllowAny]
+	permission_classes = [AllowAll] # для всех
 	def post(self, request: HttpRequest) -> HttpResponse:
-		# для swagger
-		if request.content_type == 'application/json' and isinstance(request.data, dict):
-			data = request.data
-		else:  # для фронтэнда
-			json_string = list(request.data.keys())[0]  # фронтэнд отправляет строку, нужен первый индекс
-			data = json.loads(json_string)
-
-		print(f"Попытка входа.....")
+		data = parse_request_data(request)
+		logger.info(f"Попытка входа.....")
 		username = data.get("username")
 		password = data.get("password")
 
-
-		print(f"Попытка входа: username={username}")
+		logger.info(f"Попытка входа: username={username}")
 
 		user = authenticate(request, username=username, password=password)
 
@@ -69,7 +65,7 @@ class SignInView(APIView):
 			token, created = Token.objects.get_or_create(user=user)
 			return Response({
 				'token': token.key,
-				"sessionid": {request.session.session_key},
+				"sessionid": request.session.session_key,
 				'user_id': user.id,
 				'username': user.username
 			}, status=status.HTTP_200_OK)
@@ -107,15 +103,9 @@ class SignInView(APIView):
 class SignUpView(APIView):
 	"""Регистрация пользователя с автоматическим созданием профиля.
 	При создании суперпользователя также создается профиль автоматически."""
-	permission_classes = [AllowAny] # любой чел может зарегистрироваться
+	permission_classes = [AllowAll] # любой чел может зарегистрироваться
 	def post(self, request: HttpRequest) -> HttpResponse:
-		# для swagger
-		if request.content_type == 'application/json' and isinstance(request.data, dict):
-			data = request.data
-		else: # для фронтэнда
-			json_string = list(request.data.keys())[0] # фронтэнд отправляет строку, нужен первый индекс
-			data = json.loads(json_string)
-
+		data = parse_request_data(request)
 
 		name = data.get('fullName') or data.get('name')
 		username = data.get('username')
@@ -166,7 +156,7 @@ class SignUpView(APIView):
 					},
 			   tags=['auth'],)
 class SignOutView(APIView):
-	permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuth]
 	def post(self, request):
 		if request.user.is_authenticated:
 			request.user.auth_token.delete() # токен удаляем

@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.db.models import Sum, F
+from .mixins import OrderCreationMixin
 
 
 # Типы доставки
@@ -19,7 +21,7 @@ class OrderStatus:
 
 
 
-class Order(models.Model):
+class Order(OrderCreationMixin, models.Model):
     """Заказ"""
     profile = models.ForeignKey('app_users.Profile', on_delete=models.CASCADE, related_name='orders', verbose_name='Пользователь')
     delivery_type = models.CharField(max_length=100, choices=DeliveryType.CHOICES, default=DeliveryType.FREE,verbose_name='Тип доставки')
@@ -39,6 +41,31 @@ class Order(models.Model):
     def __str__(self):
         return f'Заказ #{self.id} от {self.created_at.strftime("%d.%m.%Y")}'
 
+    def calculate_total_cost(self):
+        """Пересчет общей стоимости заказа"""
+        total = self.items.aggregate(
+            total=Sum(F('price_at_time') * F('quantity')))['total'] or 0
+        self.total_cost = total
+        self.save(update_fields=['total_cost'])
+
+    # Для того чтобы применялся миксин
+    @classmethod
+    def create_from_basket(cls, basket, profile, products_data, delivery_data=None):
+        """Создает заказ из корзины (метод класса)"""
+        temp_order = cls()
+        if delivery_data is None:
+            delivery_data = {
+                'city': '',
+                'address': '',
+                'deliveryType': 'free',
+                'paymentType': 'online',
+            }
+        return temp_order.create_order_from_basket(basket, profile, products_data, delivery_data)
+    def cancel(self):
+        """Отмена заказа с восстановлением остатков (из миксина)"""
+        self.cancel_order_with_restore(self)
+
+
 class OrderItem(models.Model):
     """Товары в заказе"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name='Заказ')
@@ -55,6 +82,7 @@ class OrderItem(models.Model):
         if not self.price_at_time and self.product:
             self.price_at_time = self.product.current_price  # используем свойство
         super().save(*args, **kwargs)
+
 
     def __str__(self):
         return f'{self.product.title} x{self.quantity} = {self.price_at_time * self.quantity} долларов'

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from catalog.models import Category, Product, Tag, ProductImage
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
 from catalog.serializers.tag_serializers import TagSerializer
 from catalog.serializers.product_image_serializer import ProductImageSerializer

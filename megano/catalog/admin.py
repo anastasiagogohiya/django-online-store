@@ -1,12 +1,11 @@
 from django.contrib import admin
-from django.utils.html import format_html
-from django.utils import timezone
 from .models import Category, Product, ProductImage, Tag, Specification, Review, Banner, Sale
-
+from django.utils.html import format_html
+from .models import Banner
 
 class ProductImageInline(admin.TabularInline):
     """Для добавления нескольких изображений прямо на странице продукта"""
-    model = Product.images.through  # связующая таблица ManyToMany
+    model = Product.images.through
     extra = 3  # 3 пустых поля для загрузки изображений
     verbose_name = "Изображение"
     verbose_name_plural = "Изображения"
@@ -52,7 +51,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ('is_active', 'is_limited', 'category', 'free_delivery')
     search_fields = ('title', 'category__title', 'description')
     prepopulated_fields = {'slug': ('title',)}
-    list_editable = ('count', 'is_active', 'is_limited')  # убрал price отсюда, т.к. цена теперь отображается
+    list_editable = ('count', 'is_active', 'is_limited')
     list_per_page = 20
     date_hierarchy = 'date'
 
@@ -196,33 +195,31 @@ class SaleAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-from django.contrib import admin
-from django.utils.html import format_html
-from .models import Banner
-
-
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product_title', 'product_image_preview')
-    search_fields = ('product__title',)
-    autocomplete_fields = ['product']  # удобный поиск по товарам
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('product').prefetch_related('product__images')
 
-    fields = ('product',)  # только поле product
+    list_display = ('id', 'product_title', 'product_image_preview', 'is_active')  # добавить статус
+    list_editable = ('is_active',)  # можно быстро включать/выключать баннер
+    search_fields = ('product__title',)
+    autocomplete_fields = ['product']
+
+    fields = ('product', 'is_active')
 
     def product_title(self, obj):
-        """Название товара"""
         return obj.product.title if obj.product else "-"
 
     product_title.short_description = "Товар"
 
     def product_image_preview(self, obj):
-        """Показывает изображение товара"""
         if obj.product:
-            first_image = obj.product.images.first()
-            if first_image and first_image.image:
+            # Используем prefetched images
+            images = list(obj.product.images.all())  # не создает доп. запрос
+            if images and images[0].image:
                 return format_html(
-                    '<img src="{}" width="80" height="60" style="object-fit: cover;" />',
-                    first_image.image.url
+                    '<img src="{}" width="80" height="60" style="object-fit: cover; border-radius: 4px;" />',
+                    images[0].image.url
                 )
         return "Нет изображения"
 

@@ -9,13 +9,16 @@ from rest_framework import status
 from drf_spectacular.utils import extend_schema
 from app_users.models import Profile
 import logging
+from megano.decorators import catch_all_errors
+from megano.permissions import IsAuth
+from django.shortcuts import get_object_or_404
 
 logger = logging.getLogger(__name__)
 
 
 
 class PaymentView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuth]
 
     @extend_schema(
         summary="Оплата заказа",
@@ -35,32 +38,18 @@ class PaymentView(APIView):
         ],
         tags=['payment'],
     )
+    @catch_all_errors
     def post(self, request, id):
         logger.info(f'POST Попытка оплатить заказ {id} ...')
 
         # 1. Проверяем существование заказа
-        try:
-            # Получаем профиль пользователя
-            profile = request.user.profile
+        profile = request.user.profile
 
-            # Ищем заказ
-            order = Order.objects.get(id=id, profile=profile)
-            logger.info(f'Заказ {id} найден, сумма: {order.total_cost}')
-
-        except Profile.DoesNotExist:
-            logger.error(f'Профиль не найден для пользователя {request.user.username}')
-            return Response(
-                {'error': 'Профиль пользователя не найден'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Order.DoesNotExist:
-            logger.warning(f'Заказ {id} не найден для пользователя {request.user.username}')
-            return Response(
-                {'error': 'Заказ не найден'},
-                status=status.HTTP_404_NOT_FOUND)
+        order = get_object_or_404(Order, id=id, profile=profile)
+        logger.info(f'Заказ {id} найден, сумма: {order.total_cost}')
 
         # Проверяем, не оплачен ли уже заказ
-        if order.status == 'paid':
+        if order.status == Order.Status.PAID:
             logger.warning(f'Попытка повторной оплаты заказа {id}')
             return Response(
                 {'error': 'Заказ уже оплачен'},

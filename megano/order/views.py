@@ -1,4 +1,3 @@
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 import logging
 from rest_framework.response import Response
@@ -9,34 +8,34 @@ from .serializers import OrderIdSerializer
 from basket.models import BasketItem, Basket
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.utils import OpenApiExample
+from megano.permissions import IsAuth
+from .utils import check_profile, get_user_basket, check_basket_not_empty
+from megano.decorators import catch_all_errors
 
 logger = logging.getLogger(__name__)
 
 
 
 class OrderView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuth]
 
     @extend_schema(
         summary="Получение заказов",
         description="Возвращает список заказов",
         tags=['order'],
         responses=OrderSerializer(many=True))
+    @catch_all_errors
     def get(self, request):
-        try:
-            logger.info(f'GET Пользователь {request.user.username} запрашивает заказы')
-            profile = request.user.profile
-            orders = Order.objects.filter(profile=profile).order_by('-created_at') # заказы пользователя, сначала новые
-            serializer = OrderSerializer(orders, many=True) # отправляем в сериализатор профиль и там происходит валидация
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except AttributeError:
-            logger.error(f"У пользователя {request.user.id} нет профиля")
-            return Response(
-                {"error": "Профиль пользователя не найден"}, status=status.HTTP_400_BAD_REQUEST)
-        except Exception as e:
-            logger.error(f"Ошибка при получении заказов: {str(e)}")
-            return Response(
-                {"error": "Внутренняя ошибка сервера"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.info(f'GET Пользователь {request.user.username} запрашивает заказы')
+        # Проверяем профиль
+        profile, error = check_profile(request) # вынесен в utils чтобы сократить код
+        if error:
+            return error
+
+        orders = Order.objects.filter(profile=profile).order_by('-created_at') # заказы пользователя, сначала новые
+        serializer = OrderSerializer(orders, many=True) # отправляем в сериализатор профиль и там происходит валидация
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     @extend_schema(
         summary="Создание заказа",
@@ -79,140 +78,70 @@ class OrderView(APIView):
             ),
         ]
     )
+    @catch_all_errors
     def post(self, request):
         logger.info(f'Пользователь {request.user.username} пытается создать заказ')
 
-        # Проверяем наличие профиля
-        try:
-            profile = request.user.profile
-            logger.info(f'Профиль найден: ID={profile.id}')
-        except AttributeError:
-            logger.error('У пользователя нет профиля!')
-            return Response(
-                {"error": "У пользователя не заполнен профиль. Пожалуйста, заполните профиль."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        # 1. Проверяем профиль
+        profile, error = check_profile(request)
+        if error:
+            return error
 
-        # Валидируем товары из корзины
+        # 2. Получаем корзину
+        basket, error = get_user_basket(profile)
+        if error:
+            return error
+
+        # 3. Проверяем, что корзина не пуста
+        is_empty, error = check_basket_not_empty(basket)
+        if is_empty:
+            return error
+
+        # 4. Валидируем входящие данные от фронтенда
         products_serializer = CreateOrderSerializer(data=request.data, many=True)
-
         if not products_serializer.is_valid():
-            logger.warning(f'Ошибка валидации: {products_serializer.errors}')
+            logger.warning(f'Ошибка валидации входящих данных: {products_serializer.errors}')
             return Response(products_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info(f'Валидация переданных данных из фронтэнда успешно прошла.')
+        logger.info('Валидация входящих данных успешно пройдена')
+        products_from_frontend = products_serializer.validated_data
 
-        # Получаем валидированные товары
-        products_data = products_serializer.validated_data
+        # 5. Проверяем соответствие товаров корзине
+        basket_items = basket.items.select_related('product').all()
+        basket_dict = {item.id: item for item in basket_items}
 
-        # Рассчитываем общую стоимость
-        total_cost = sum(item['price'] * item['count'] for item in products_data)
-
-        # Создаем заказ
-        try:
-            new_order = Order.objects.create(
-                profile=profile,
-                delivery_type='delivery',
-                payment_type='online',
-                city='',
-                address_delivery='',
-                total_cost=total_cost,
-                status=''
-            )
-            logger.info(f'Заказ успешно создан: ID={new_order.id}')
-        except Exception as e:
-            logger.error(f'Ошибка при создании заказа: {e}')
-            return Response({"error": f"Не удалось создать заказ: {str(e)}"},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        # Добавляем товары в заказ
-        logger.info(f'Всего товаров для добавления: {len(products_data)}')
-
-        for idx, item_data in enumerate(products_data, 1):
-            logger.info(f'Данные товара: {item_data}')
-
-            try:
-                basket_item_id = item_data.get('id')  # Это ID записи в корзине (BasketItem.id)
-                quantity = item_data.get('count')
-                price_from_frontend = item_data.get('price')
-
-                logger.info(f'BasketItem ID: {basket_item_id}')
-                logger.info(f'Quantity: {quantity}')
-
-                # Получаем реальный товар из базы данных по BasketItem
-                try:
-                    basket_item = BasketItem.objects.select_related('product', 'basket').get(
-                        id=basket_item_id,
-                        basket__profile=profile  # Проверяем, что корзина принадлежит пользователю
-                    )
-
-                    product = basket_item.product
-                    real_product_id = product.id
-                    real_quantity = basket_item.count
-                    real_price = product.price
-
-                    # Проверяем соответствие данных (лог предупреждения, но не блокируем)
-                    if real_quantity != quantity:
-                        logger.warning(
-                            f'Количество не совпадает: фронтэнд={quantity}, корзина={real_quantity}. Использую из корзины.')
-                        quantity = real_quantity
-
-                    if real_price != price_from_frontend:
-                        logger.warning(
-                            f'Цена не совпадает: фронтэнд={price_from_frontend}, БД={real_price}. Использую из БД.')
-
-                except BasketItem.DoesNotExist:
-                    logger.error(f'BasketItem с ID={basket_item_id} не найден или не принадлежит пользователю!')
-                    # Удаляем заказ и возвращаем ошибку
-                    new_order.delete()
-                    return Response(
-                        {"error": f"Товар в корзине не найден. Возможно, корзина была изменена."},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-
-                # Создаем OrderItem с реальными данными из БД
-                logger.info('Пытаемся создать OrderItem...')
-
-                order_item = OrderItem.objects.create(
-                    order=new_order,
-                    product=product,  # Передаем объект Product, не ID
-                    quantity=quantity,
-                    price_at_time=real_price  # Используем цену из БД
-                )
-
-            except Exception as e:
-                # Логируем состояние БД перед удалением заказа
-                logger.info(f'Проверка заказа #{new_order.id} перед удалением:')
-                logger.info(f'  - Заказ существует: {Order.objects.filter(id=new_order.id).exists()}')
-
-                # Удаляем заказ
-                logger.info(f'Удаляем заказ #{new_order.id} из-за ошибки...')
-                deleted_count, _ = new_order.delete()
-                logger.info(f'Заказ удален. Количество удаленных объектов: {deleted_count}')
-
+        for frontend_item in products_from_frontend:
+            basket_item_id = frontend_item.get('id')
+            if basket_item_id not in basket_dict:
                 return Response(
-                    {"error": f"Ошибка при добавлении товара: {str(e)}"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
+                    {"error": f"Товар с id={basket_item_id} не найден в вашей корзине"},
+                    status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info(f'ТОВАРЫ УСПЕШНО ДОБАВЛЕНЫ! Всего добавлено: {len(products_data)} товаров')
+        # Проверяем количество
+        for frontend_item in products_from_frontend:
+            basket_item_id = frontend_item.get('id')
+            basket_item = basket_dict[basket_item_id]
+            if frontend_item.get('count') > basket_item.count:
+                logger.warning(
+                    f'Количество не совпадает: фронтэнд={frontend_item.get("count")}, '
+                    f'корзина={basket_item.count}. Использую из корзины.')
 
-        # Очищаем корзину
-        try:
-            # Получаем корзину пользователя
-            basket = Basket.objects.get(profile=profile)
-            # Удаляем все товары из корзины
-            deleted_count = BasketItem.objects.filter(basket=basket).delete()
-            logger.info(
-                f"Корзина пользователя {profile.user.username} очищена. Удалено записей: {deleted_count[0] if isinstance(deleted_count, tuple) else deleted_count}")
-        except Basket.DoesNotExist:
-            logger.warning(f"Корзина для профиля {profile.id} не найдена")
+        # 6. Данные доставки (пока пустые, заполнятся позже в OrderDetailView)
+        delivery_data = {
+            'city': '',
+            'address': '',
+            'deliveryType': '',
+            'paymentType': '',}
 
-        return Response({"orderId": new_order.id}, status=status.HTTP_201_CREATED)
+        # 7. Создаем заказ через миксин
+        order = Order.create_from_basket(basket, profile, products_from_frontend, delivery_data)
+
+        logger.info(f'Заказ #{order.id} успешно создан')
+        return Response({"orderId": order.id}, status=status.HTTP_201_CREATED)
 
 
 class OrderDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuth]
 
     @extend_schema(
         summary="Получение деталей заказа",
@@ -229,15 +158,15 @@ class OrderDetailView(APIView):
         ],
         responses={200: OrderSerializer, 404: "Заказ не найден"}
     )
+    @catch_all_errors
     def get(self, request, id=None):
         logger.info(f'Пользователь запрашивает данные по заказу id={id}')
-        try:
-            order = Order.objects.get(id=id, profile=request.user.profile)
-            return Response(OrderSerializer(order).data)
-        except Order.DoesNotExist:
-            return Response({"error": "Заказ не найден"}, status=status.HTTP_404_NOT_FOUND)
-        except AttributeError:
-            return Response({"error": "Профиль пользователя не найден"}, status=status.HTTP_400_BAD_REQUEST)
+        profile, error = check_profile(request)
+        if error:
+            return error
+        order = Order.objects.get(id=id, profile=profile)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
         summary="Заполнение деталей заказа",
@@ -298,39 +227,35 @@ class OrderDetailView(APIView):
             ),
         ],
     )
+    @catch_all_errors
     def post(self, request, id=None):
         logger.info(f'POST Пользователь заполняет детали заказа id{id}')
         # Здесь пользователь ФИО, email, телефон (заполнено автоматом если в профиле заполнено)
         # Здесь пользователь заполняет Город доставки, Адрес доставки
         # Здесь пользователь заполняет Тип доставки
         # Здесь пользователь заполняет Тип оплаты
+        profile, error = check_profile(request)
+        if error:
+            return error
 
+        order = Order.objects.get(id=id, profile=profile)
+        # Логируем конкретные поля
+        logger.info(f'deliveryType: {request.data.get("deliveryType")}')
+        logger.info(f'paymentType: {request.data.get("paymentType")}')
+        logger.info(f'city: {request.data.get("city")}')
+        logger.info(f'address: {request.data.get("address")}')
 
-        try:
-            order = Order.objects.get(id=id, profile=request.user.profile)
-            # Логируем конкретные поля
-            logger.info(f'deliveryType: {request.data.get("deliveryType")}')
-            logger.info(f'paymentType: {request.data.get("paymentType")}')
-            logger.info(f'city: {request.data.get("city")}')
-            logger.info(f'address: {request.data.get("address")}')
+        # Устанавливаем статус ACCEPTED (Принят)
+        if order.status == OrderStatus.CREATED or not order.status:
+            order.status = OrderStatus.ACCEPTED
+            logger.info(f'Статус заказа #{id} изменен с created на accepted')
 
-            # Устанавливаем статус ACCEPTED (Принят)
-            if order.status == OrderStatus.CREATED or not order.status:
-                order.status = OrderStatus.ACCEPTED
-                logger.info(f'Статус заказа #{id} изменен с created на accepted')
+        order.save()
 
-            order.save()
+        # Частичное обновление (только переданные поля)
+        serializer = OrderSerializer(order, data=request.data, partial=True)
 
-            # Частичное обновление (только переданные поля)
-            serializer = OrderSerializer(order, data=request.data, partial=True)
-
-            if serializer.is_valid():
-                serializer.save()
-                logger.info(f'Заказ #{id} успешно обновлен')
-                return Response({'id': order.id}, status=status.HTTP_200_OK)
-            else:
-                logger.error(f'Ошибка валидации: {serializer.errors}')
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Order.DoesNotExist:
-            return Response({"error": "Заказ не найден"}, status=status.HTTP_404_NOT_FOUND)
+        if serializer.is_valid():
+            serializer.save()
+            logger.info(f'Заказ #{id} успешно обновлен')
+            return Response({'id': order.id}, status=status.HTTP_200_OK)

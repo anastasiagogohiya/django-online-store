@@ -1,20 +1,11 @@
 from django.db import models
 from django.db.models import CASCADE
-from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
-class SlugMixin:
-    """Миксин для авто создания slug (красивый url)
-       применяется в Category и Product.
-    """
-    def save(self, *args, **kwargs):
-        if not self.slug:  # если slug пустой
-            self.slug = slugify(self.title)  # создать из названия катергории или продукта
-        super().save(*args, **kwargs)  # сохранение
+from catalog.mixins import SlugMixin, ImageValidatorMixin
 
 
-class Category(SlugMixin, models.Model):
+class Category(ImageValidatorMixin, SlugMixin, models.Model):
     """Категория товаров с доступными подкатегориями (до 2-х уровней)"""
     title = models.CharField(max_length=255, verbose_name="Название категории")
     image = models.ImageField(upload_to='catalog/categories/', blank=True, null=True, verbose_name="Изображение категории") # можно оставить пустым
@@ -65,7 +56,7 @@ class Tag(models.Model):
         return self.name
 
 
-class ProductImage(models.Model):
+class ProductImage(ImageValidatorMixin, models.Model):
     image = models.ImageField(upload_to='catalog/product_images/', verbose_name="Изображение товара")
     alt = models.CharField(max_length=255, blank=True)
 
@@ -74,7 +65,19 @@ class ProductImage(models.Model):
         verbose_name_plural = "Изображения"
 
     def __str__(self):
-        return f'Изображение {self.image} {self.alt}'
+        return f'Изображение {self.image.name} - {self.alt}'
+
+    def save(self, *args, **kwargs):
+        """Создаем alt автоматически и валидируем изображение"""
+        if not self.alt and self.image.name:
+            self.alt = self.image.name.split('/')[-1].split('.')[0]
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def clean(self):
+        super().clean()
+        if self.image:
+            self.validate_image(self.image, field_name='image', max_size_mb=10, min_width=300, min_height=300)
 
 
 class Specification(models.Model):
@@ -100,7 +103,7 @@ class Product(SlugMixin, models.Model):
     count = models.IntegerField(default=0, verbose_name='Наличие на складе')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания карточки товара')
     description = models.TextField(max_length=255, verbose_name='Краткое описание товара')
-    full_description = models.TextField(max_length=500, verbose_name='Полное описание товара', blank=True) # может быть пустым
+    full_description = models.TextField(max_length=1000, verbose_name='Полное описание товара', blank=True) # может быть пустым
     free_delivery = models.BooleanField(default=True, verbose_name='Бесплатная доставка')
     images = models.ManyToManyField(ProductImage, blank=True)
     tags = models.ManyToManyField(Tag, blank=True, db_index=True)
@@ -118,7 +121,6 @@ class Product(SlugMixin, models.Model):
                                          help_text="Товары сортируются по популярности")  # по заданию товары сортируются по кол-ву покупок
     slug = models.SlugField(unique=True, blank=True)  # красивый вывод url
 
-    # reviews удалила
     @property
     def current_price(self):
         """Текущая цена с учетом активной распродажи"""
@@ -137,15 +139,26 @@ class Product(SlugMixin, models.Model):
         """True если есть в наличии (используется для фильтрации поиска)"""
         return self.count > 0
 
-    @property
-    def rounded_price(self):
-        """Цена с округлением до 2 знаков"""
-        return round(self.price, 2)
+    def clean(self):
+        super().clean()
+        if self.price < 0:
+            raise ValidationError({'price': 'Цена не может быть отрицательной'})
+        if self.count < 0:
+            raise ValidationError({'count': 'Количество не может быть отрицательным'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
         ordering = ['-ordering_index', '-purchase_count']
+        indexes = [
+            models.Index(fields=['category', 'is_active']),
+            models.Index(fields=['-purchase_count']),
+            models.Index(fields=['is_limited', 'ordering_index']),]
 
     def __str__(self):
         return self.title
@@ -172,6 +185,13 @@ class Sale(models.Model):
         """Возвращает цену с учетом скидки"""
         return self.sale_price if self.is_active else self.product.price
 
+    def clean(self):
+        if self.date_from > self.date_to:
+            raise ValidationError("Дата начала не может быть позже даты окончания")
+
+        if self.date_to < timezone.now().date():
+            raise ValidationError("Дата окончания не может быть в прошлом")
+
 
 class Review(models.Model):
     author = models.ForeignKey("app_users.Profile", on_delete=CASCADE, related_name='reviews')
@@ -184,11 +204,19 @@ class Review(models.Model):
         verbose_name = "Отзыв"
         verbose_name_plural = "Отзывы"
 
+    def clean(self):
+        if not (1 <= self.rate <= 5):
+            raise ValidationError({'rate': 'Оценка должна быть от 1 до 5'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
 
 class Banner(models.Model):
     """В баннере откражается товар включенный в баннер"""
     product = models.OneToOneField(Product, on_delete=models.CASCADE, related_name='banner', verbose_name="Товар для баннера")
-
+    is_active = models.BooleanField(default=True, verbose_name='Активен')
 
     class Meta:
         verbose_name = "Баннер"
