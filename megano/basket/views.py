@@ -9,7 +9,7 @@ from drf_spectacular.utils import OpenApiParameter
 from django.db import transaction
 from rest_framework import serializers
 from catalog.models import Product
-from megano.permissions import AllowAll
+from megano.permissions import AllowAll, IsAuth
 from megano.decorators import catch_all_errors
 
 
@@ -132,6 +132,7 @@ class BasketView(BasketMixin, APIView):
         ]
     )
     @catch_all_errors
+    @transaction.atomic
     def delete(self, request):
         """Удаление товара из корзины или уменьшение количества"""
         logger.info('DELETE: Попытка удалить/уменьшить товар в корзине')

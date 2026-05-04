@@ -1,61 +1,108 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Tag, Specification, Review, Banner, Sale
+from django import forms
 from django.utils.html import format_html
-from .models import Banner
+from django.core.exceptions import ValidationError
+from .models import Category, Product, ProductImage, Tag, Specification, Review, Banner, Sale
 
+
+# ------------------------------------------------------------
+# Форма для Sale с валидацией цены
+# ------------------------------------------------------------
+class SaleForm(forms.ModelForm):
+    class Meta:
+        model = Sale
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        product = cleaned_data.get('product')
+        sale_price = cleaned_data.get('sale_price')
+        if product and sale_price and sale_price >= product.price:
+            raise ValidationError('Цена по скидке должна быть меньше обычной цены товара')
+        return cleaned_data
+
+
+# ------------------------------------------------------------
+# Inline-классы для ManyToMany связей
+# ------------------------------------------------------------
 class ProductImageInline(admin.TabularInline):
-    """Для добавления нескольких изображений прямо на странице продукта"""
     model = Product.images.through
-    extra = 3  # 3 пустых поля для загрузки изображений
+    extra = 3
     verbose_name = "Изображение"
     verbose_name_plural = "Изображения"
+    # Показываем поле выбора изображения и, если нужно, порядок
+    fields = ('productimage',)
+    autocomplete_fields = ('productimage',)  # удобный поиск по изображениям
 
 
 class SpecificationInline(admin.TabularInline):
-    """Для добавления характеристик прямо на странице продукта"""
     model = Product.specifications.through
     extra = 2
     verbose_name = "Характеристика"
     verbose_name_plural = "Характеристики"
+    autocomplete_fields = ('specification',)
 
+class ProductTagInline(admin.TabularInline):
+    model = Product.tags.through
+    extra = 1
+    verbose_name = "Товар"
+    verbose_name_plural = "Товары с этим тегом"
+    autocomplete_fields = ('product',)
 
 class TagInline(admin.TabularInline):
-    """Для добавления тегов прямо на странице продукта"""
     model = Product.tags.through
     extra = 2
     verbose_name = "Тег"
     verbose_name_plural = "Теги"
+    autocomplete_fields = ('tag',)
 
 
+# ------------------------------------------------------------
+# Админки моделей
+# ------------------------------------------------------------
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'image_preview', 'parent', 'ordering_index')
-    list_filter = ('parent',)
+    list_display = ('title', 'image_preview', 'parent', 'ordering_index', 'is_active')
+    list_filter = ('parent', 'is_active')
     search_fields = ('title',)
     prepopulated_fields = {'slug': ('title',)}
-    list_editable = ('ordering_index',)  # можно менять порядок прямо в списке
+    list_editable = ('ordering_index',)
+    actions = ['soft_delete', 'restore']
+    has_delete_permission = lambda self, request, obj=None: False
+
+    def soft_delete(self, request, queryset):
+        count = queryset.update(is_active=False)
+        self.message_user(request, f'{count} категорий деактивировано')
+    soft_delete.short_description = "Мягкое удаление"
+
+    def restore(self, request, queryset):
+        count = queryset.update(is_active=True)
+        self.message_user(request, f'{count} категорий восстановлено')
+    restore.short_description = "Восстановить"
 
     def image_preview(self, obj):
-        """Показывает миниатюру изображения в списке"""
         if obj.image:
             return format_html('<img src="{}" width="50" height="50" style="object-fit: cover;" />', obj.image.url)
         return "Нет изображения"
-
     image_preview.short_description = "Изображение"
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'category', 'price_display', 'current_price_display',
-                    'count', 'is_active', 'is_limited', 'rating', 'purchase_count')
+                    'count', 'rating', 'purchase_count', 'date')
     list_filter = ('is_active', 'is_limited', 'category', 'free_delivery')
-    search_fields = ('title', 'category__title', 'description')
+    search_fields = ('title', 'category__title', 'description', 'full_description')
     prepopulated_fields = {'slug': ('title',)}
-    list_editable = ('count', 'is_active', 'is_limited')
+    list_editable = ('count',)
     list_per_page = 20
     date_hierarchy = 'date'
-
+    ordering = ('-date',)
+    list_display_links = ('id', 'title')
+    actions = ['soft_delete', 'restore']
+    has_delete_permission = lambda self, request, obj=None: False  # убрала кнопку полного удаления пользователя
     inlines = [ProductImageInline, SpecificationInline, TagInline]
+    autocomplete_fields = ['category']
 
     fieldsets = (
         ('Основная информация', {
@@ -74,26 +121,30 @@ class ProductAdmin(admin.ModelAdmin):
         }),
     )
 
-    autocomplete_fields = ['category']
+    def soft_delete(self, request, queryset):
+        count = queryset.update(is_active=False)
+        self.message_user(request, f'{count} товаров деактивировано')
+    soft_delete.short_description = "Мягкое удаление"
+
+    def restore(self, request, queryset):
+        count = queryset.update(is_active=True)
+        self.message_user(request, f'{count} товаров восстановлено')
+    restore.short_description = "Восстановить"
 
     def price_display(self, obj):
-        """Отображает обычную цену товара"""
         return f"{obj.price} $"
     price_display.short_description = 'Обычная цена'
 
     def current_price_display(self, obj):
-        """Отображает актуальную цену с учетом распродажи"""
         if obj.has_active_sale:
             return format_html(
                 '<span style="color: red; font-weight: bold;">{} $</span> <span style="color: gray; text-decoration: line-through;">{} $</span>',
-                obj.current_price,
-                obj.price
+                obj.current_price, obj.price
             )
         return f"{obj.price} $"
     current_price_display.short_description = 'Актуальная цена'
 
     def save_model(self, request, obj, form, change):
-        """Кастомное сохранение с логированием"""
         if not change:
             obj.purchase_count = 0
             obj.rating = 0
@@ -103,15 +154,17 @@ class ProductAdmin(admin.ModelAdmin):
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('id', 'image_preview', 'alt', 'product_name')
+    list_display = ('id', 'image_preview', 'alt', 'product_names')
     list_filter = ('product__category',)
     search_fields = ('alt', 'product__title')
 
-    def product_name(self, obj):
-        """Показывает название товара"""
-        product = obj.product_set.first()
-        return product.title if product else "Не привязано"
-    product_name.short_description = "Товар"
+    def product_names(self, obj):
+        """Показывает все товары, связанные с изображением (ManyToMany)"""
+        products = obj.product_set.all()
+        if products:
+            return ", ".join(p.title for p in products)
+        return "Не привязано"
+    product_names.short_description = "Товары"
 
     def image_preview(self, obj):
         if obj.image:
@@ -124,6 +177,7 @@ class ProductImageAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'product_count')
     search_fields = ('name',)
+    inlines = [ProductTagInline]
 
     def product_count(self, obj):
         return obj.product_set.count()
@@ -154,13 +208,13 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Sale)
 class SaleAdmin(admin.ModelAdmin):
+    form = SaleForm  # Подключаем валидацию цены
     list_display = ('product', 'sale_price', 'date_from', 'date_to', 'is_active', 'discount_percent')
     list_filter = ('date_from', 'date_to')
     search_fields = ('product__title',)
     list_editable = ('sale_price',)
     date_hierarchy = 'date_from'
-    raw_id_fields = ('product',)
-    autocomplete_fields = ['product']  # Добавляем autocomplete для удобства
+    autocomplete_fields = ['product']
 
     fieldsets = (
         ('Товар и цена', {
@@ -172,55 +226,40 @@ class SaleAdmin(admin.ModelAdmin):
     )
 
     def is_active(self, obj):
-        """Показывает активна ли сейчас распродажа"""
-        from django.utils import timezone
-        today = timezone.now().date()
-        return obj.date_from <= today <= obj.date_to
+        return obj.is_active
     is_active.boolean = True
     is_active.short_description = "Активна"
 
     def discount_percent(self, obj):
-        """Показывает процент скидки"""
-        if obj.product and obj.product.price:
+        if obj.product and obj.product.price and obj.product.price > 0:
             discount = ((obj.product.price - obj.sale_price) / obj.product.price) * 100
             return f"{discount:.0f}%"
         return "-"
     discount_percent.short_description = "Скидка"
 
-    def save_model(self, request, obj, form, change):
-        """При сохранении распродажи можно добавить валидацию"""
-        if obj.sale_price >= obj.product.price:
-            from django.core.exceptions import ValidationError
-            raise ValidationError('Цена по скидке должна быть меньше обычной цены')
-        super().save_model(request, obj, form, change)
-
 
 @admin.register(Banner)
 class BannerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'product_title', 'product_image_preview', 'is_active')
+    list_editable = ('is_active',)
+    search_fields = ('product__title',)
+    autocomplete_fields = ['product']
+    fields = ('product', 'is_active')
+
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('product').prefetch_related('product__images')
 
-    list_display = ('id', 'product_title', 'product_image_preview', 'is_active')  # добавить статус
-    list_editable = ('is_active',)  # можно быстро включать/выключать баннер
-    search_fields = ('product__title',)
-    autocomplete_fields = ['product']
-
-    fields = ('product', 'is_active')
-
     def product_title(self, obj):
         return obj.product.title if obj.product else "-"
-
     product_title.short_description = "Товар"
 
     def product_image_preview(self, obj):
         if obj.product:
-            # Используем prefetched images
-            images = list(obj.product.images.all())  # не создает доп. запрос
+            images = list(obj.product.images.all())
             if images and images[0].image:
                 return format_html(
                     '<img src="{}" width="80" height="60" style="object-fit: cover; border-radius: 4px;" />',
                     images[0].image.url
                 )
         return "Нет изображения"
-
     product_image_preview.short_description = "Изображение товара"

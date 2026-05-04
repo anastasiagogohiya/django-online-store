@@ -1,8 +1,7 @@
 from rest_framework.views import APIView
 from .serializers import PaymentSerializer
-from rest_framework.permissions import IsAuthenticated
 from .models import Payment
-from order.models import Order
+from order.models import Order, OrderStatus
 from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiExample
 from rest_framework import status
@@ -12,6 +11,7 @@ import logging
 from megano.decorators import catch_all_errors
 from megano.permissions import IsAuth
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +39,18 @@ class PaymentView(APIView):
         tags=['payment'],
     )
     @catch_all_errors
+    @transaction.atomic
     def post(self, request, id):
         logger.info(f'POST Попытка оплатить заказ {id} ...')
 
-        # 1. Проверяем существование заказа
+        # Проверяем существование заказа
         profile = request.user.profile
 
         order = get_object_or_404(Order, id=id, profile=profile)
         logger.info(f'Заказ {id} найден, сумма: {order.total_cost}')
 
         # Проверяем, не оплачен ли уже заказ
-        if order.status == Order.Status.PAID:
+        if order.status == OrderStatus.PAID:
             logger.warning(f'Попытка повторной оплаты заказа {id}')
             return Response(
                 {'error': 'Заказ уже оплачен'},
@@ -95,10 +96,9 @@ class PaymentView(APIView):
                 'status': payment.status,
                 'transaction_id': payment.transaction_id,
                 'amount': str(payment.amount),
-                'order_id': order.id,
+                'orderId': order.id,
                 'card_last4': card_last4,
-                'message': 'Оплата прошла успешно'
-            }, status=status.HTTP_200_OK)
+                'message': 'Оплата прошла успешно'}, status=status.HTTP_200_OK)
 
         except Exception as e:
             # Если ошибка - меняем статус

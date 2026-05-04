@@ -60,11 +60,14 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'api.middleware.CSRFExemptForTokenAuthMiddleware', # иначе проблемы с CsrfViewMiddleware
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # из megano/middleware.py
+    'megano.middleware.ResponseTimeMiddleware'
 ]
 
 ROOT_URLCONF = 'megano.urls'

@@ -11,6 +11,7 @@ from drf_spectacular.utils import OpenApiExample
 from megano.permissions import IsAuth
 from .utils import check_profile, get_user_basket, check_basket_not_empty
 from megano.decorators import catch_all_errors
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,7 @@ class OrderView(APIView):
         ]
     )
     @catch_all_errors
+    @transaction.atomic
     def post(self, request):
         logger.info(f'Пользователь {request.user.username} пытается создать заказ')
 
@@ -258,4 +260,4 @@ class OrderDetailView(APIView):
         if serializer.is_valid():
             serializer.save()
             logger.info(f'Заказ #{id} успешно обновлен')
-            return Response({'id': order.id}, status=status.HTTP_200_OK)
+            return Response({'orderId': order.id}, status=status.HTTP_200_OK)

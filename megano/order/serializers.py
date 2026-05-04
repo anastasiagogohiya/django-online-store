@@ -137,7 +137,7 @@ class OrderSerializer(serializers.ModelSerializer):
     #profile = serializers.PrimaryKeyRelatedField(read_only=True)
     createdAt = serializers.DateTimeField(source='created_at', read_only=True)
     fullName = serializers.CharField(source='profile.full_name', read_only=True)
-    email = serializers.CharField(source='profile.email', read_only=True)
+    email = serializers.CharField(source='profile.user.email', read_only=True)
     phone = serializers.CharField(source='profile.phone', read_only=True)
     deliveryType = serializers.CharField(source='delivery_type')
     paymentType = serializers.CharField(source='payment_type')
