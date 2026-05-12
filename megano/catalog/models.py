@@ -10,6 +10,7 @@ class Category(ImageValidatorMixin, SlugMixin, models.Model):
     title = models.CharField(max_length=255, verbose_name="Название категории")
     image = models.ImageField(upload_to='catalog/categories/', blank=True, null=True, verbose_name="Изображение категории") # можно оставить пустым
     slug = models.SlugField(unique=True, blank=True, verbose_name="URL")
+    is_active = models.BooleanField(default=True, verbose_name="Активна")
 
     parent = models.ForeignKey(
         'self',
@@ -162,6 +163,21 @@ class Product(SlugMixin, models.Model):
 
     def __str__(self):
         return self.title
+
+    def soft_delete(self):
+        """Мягкое удаление"""
+        self.is_active = False
+        self.save()
+
+    def restore(self):
+        """Восстановление"""
+        self.is_active = True
+        self.save()
+
+    def hard_delete(self):
+        """Полное удаление из БД"""
+        super().delete()
+
 
 
 class Sale(models.Model):

@@ -57,6 +57,28 @@ class Profile(models.Model):
         """Возвращает имя пользователя"""
         return self.full_name
 
+    def soft_delete(self):
+        """Мягкое удаление"""
+        self.is_active = False
+        self.save()
+        # Деактивируем пользователя, иначе может он все равно зайти!
+        if self.user:
+            self.user.is_active = False
+            self.user.save()
+
+    def restore(self):
+        """Восстановление"""
+        self.is_active = True
+        self.save()
+        # Активируем пользователя обратно
+        if self.user:
+            self.user.is_active = True
+            self.user.save()
+
+    def hard_delete(self):
+        """Полное удаление из БД"""
+        super().delete()
+
 """Автосоздание профиля"""
 
 @receiver(post_save, sender=User)
@@ -64,11 +86,10 @@ def create_user_profile(sender, instance, created, **kwargs):
     """
     Сигнал: автоматически создает профиль при создании нового пользователя.
     Срабатывает при любом способе создания пользователя.
+    В админке профиль автоматом не создается, то есть сигнал игнорируется.
     """
-    if created:
-        Profile.objects.get_or_create(
-            user=instance,
-            defaults={'full_name': instance.username or f"User_{instance.id}"})
+    if created and not hasattr(instance, 'profile'):
+        Profile.objects.create(user=instance)
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):

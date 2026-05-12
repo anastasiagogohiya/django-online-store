@@ -2,15 +2,21 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
 from .models import Order, OrderItem, DeliveryType, PaymentType, OrderStatus
+from catalog.models import Product
 
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 0
-    autocomplete_fields = ('product',)
     fields = ('product', 'quantity', 'price_at_time', 'current_price_display', 'sale_status_display',
               'price_comparison')
     readonly_fields = ('price_at_time', 'current_price_display', 'sale_status_display', 'price_comparison')
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'product':
+            kwargs['queryset'] = Product.objects.filter(is_active=True)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
     def current_price_display(self, obj):
         """Отображаем актуальную цену товара с цветом"""
@@ -33,7 +39,6 @@ class OrderItemInline(admin.TabularInline):
     def sale_status_display(self, obj):
         """Отображаем информацию о распродаже с эмодзи"""
         if obj.product_id:
-            from catalog.models import Product
             try:
                 product = Product.objects.get(id=obj.product_id)
                 if hasattr(product, 'sale') and product.sale:
@@ -58,7 +63,6 @@ class OrderItemInline(admin.TabularInline):
     def price_comparison(self, obj):
         """Сравнение цены в заказе с текущей ценой"""
         if obj.product_id and obj.price_at_time:
-            from catalog.models import Product
             try:
                 product = Product.objects.get(id=obj.product_id)
                 if obj.price_at_time != product.current_price:
@@ -97,6 +101,8 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ('status', 'delivery_type', 'payment_type', 'created_at')
     search_fields = ('id', 'profile__user__username', 'profile__user__email', 'city', 'address_delivery')
     readonly_fields = ('created_at', 'total_cost', 'current_total_cost_display')
+    actions = ['soft_delete_orders', 'restore_orders']
+    has_delete_permission = lambda self, request, obj=None: False
     inlines = [OrderItemInline]
     fieldsets = (
         ('Информация о заказе', {
@@ -174,6 +180,28 @@ class OrderAdmin(admin.ModelAdmin):
             if form.instance.total_cost != total:
                 form.instance.total_cost = total
                 form.instance.save()
+
+    def soft_delete_orders(self, request, queryset):
+        count = queryset.update(
+            is_deleted=True,
+            deleted_at=timezone.now(),
+            status=OrderStatus.CANCELLED  # меняем статус на "Отменён"
+        )
+        self.message_user(request, f'{count} заказ(ов) мягко удалено (статус изменён на "Отменён")')
+
+
+    def restore_orders(self, request, queryset):
+        count = queryset.update(
+            is_deleted=False,
+            deleted_at=None,
+            status=OrderStatus.CREATED  # возвращаем в статус "Создан"
+        )
+        self.message_user(request, f'{count} заказ(ов) восстановлено (статус изменён на "Создан")')
+
+    def get_queryset(self, request):
+        # Показываем все заказы, включая удалённые, но можно отфильтровать
+        return super().get_queryset(request)
+
 
 
 @admin.register(OrderItem)

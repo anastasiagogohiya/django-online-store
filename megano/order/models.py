@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.db.models import Sum, F
 from .mixins import OrderCreationMixin
+from django.core.exceptions import ValidationError
+from catalog.models import Product
 
 
 # Типы доставки
@@ -11,8 +13,8 @@ class DeliveryType:
 
 # Типы оплаты
 class PaymentType:
-    CASH, ONLINE, CARD, SOMEONE  = 'cash', 'online', 'card', 'someone'
-    CHOICES = [(CASH, 'Наличные'), (ONLINE, 'Онлайн картой'), (CARD, 'Карта курьеру'), (SOMEONE, 'Онлайн со случайного чужого счета')]
+    ONLINE, SOMEONE  = 'online', 'someone'
+    CHOICES = [(ONLINE, 'Онлайн картой'),  (SOMEONE, 'Онлайн со случайного чужого счета')]
 
 # Статусы заказа
 class OrderStatus:
@@ -32,6 +34,8 @@ class Order(OrderCreationMixin, models.Model):
     address_delivery = models.CharField(max_length=255, verbose_name='Адрес доставки')
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания заказа')
     products = models.ManyToManyField('catalog.Product', through='OrderItem', verbose_name='Товары в заказе') # данные из модели Product
+    is_deleted = models.BooleanField(default=False, verbose_name="Удален") # мягкое удаление
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="Дата удаления")
 
     class Meta:
         verbose_name = 'Заказ'
@@ -78,10 +82,18 @@ class OrderItem(models.Model):
         verbose_name_plural = 'Товары в заказе'
 
     def save(self, *args, **kwargs):
-        # Если цена не установлена, берем текущую цену с учетом распродажи
-        if not self.price_at_time and self.product:
-            self.price_at_time = self.product.current_price  # используем свойство
+        if not self.price_at_time and self.product_id:
+            product = Product.objects.get(id=self.product_id)
+            self.price_at_time = product.current_price
+        self.full_clean()
         super().save(*args, **kwargs)
+
+    def clean(self):
+        if not self.product_id:
+            raise ValidationError({'product': 'Товар не выбран'})
+        # Проверяем активность товара, но не загружаем объект, чтобы избежать ошибки
+        if not Product.objects.filter(id=self.product_id, is_active=True).exists():
+            raise ValidationError({'product': 'Нельзя добавить в заказ удалённый товар'})
 
 
     def __str__(self):

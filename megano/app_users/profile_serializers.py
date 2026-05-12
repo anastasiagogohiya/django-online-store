@@ -2,6 +2,8 @@
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_serializer, OpenApiExample
 from app_users.models import Avatar, Profile
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 """Для profile/"""
@@ -46,20 +48,28 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ["fullName", "email", "phone", "avatar"]
 
+    def validate(self, data):
+        """Проверка уникальности телефона и email"""
+        phone = data.get('phone')
+        if phone:
+            if Profile.objects.exclude(id=self.instance.id if self.instance else None).filter(phone=phone).exists():
+                raise serializers.ValidationError({"phone": "Телефон уже используется"})
+
+        # Проверка email
+        email = data.get('user', {}).get('email') if 'user' in data else None
+        if email and self.instance:
+            if User.objects.exclude(id=self.instance.user.id).filter(email=email).exists():
+                raise serializers.ValidationError({"email": "Email уже используется"})
+
+        return data
 
     def update(self, instance, validated_data):
-        # Обновляем full_name
-        if 'full_name' in validated_data:
-            instance.full_name = validated_data['full_name']
+        # Обновляем поля
+        instance.full_name = validated_data.get('full_name', instance.full_name)
+        instance.phone = validated_data.get('phone', instance.phone)
 
-        # Обновляем phone
-        if 'phone' in validated_data:
-            instance.phone = validated_data['phone']
-
-        # Обновляем email пользователя
         if 'user' in validated_data and 'email' in validated_data['user']:
-            email = validated_data['user']['email']
-            instance.user.email = email
+            instance.user.email = validated_data['user']['email']
             instance.user.save()
 
         instance.save()
@@ -74,9 +84,9 @@ class AvatarUploadSerializer(serializers.Serializer):
 
     def validate_avatar(self, value):
         """Валидация файла аватара"""
-        # Проверка размера (5 MB)
-        if value.size > 5 * 1024 * 1024:
-            raise serializers.ValidationError("Файл слишком большой. Максимум 5MB")
+        # Проверка размера (2 MB)
+        if value.size > 2 * 1024 * 1024:
+            raise serializers.ValidationError("Файл слишком большой. Максимум 2MB")
 
         # Проверка типа
         allowed_types = ['image/jpeg', 'image/png', 'image/gif']

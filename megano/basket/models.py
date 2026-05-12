@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum, F
 from app_users.models import Profile
 from catalog.models import Product
+from django.core.exceptions import ValidationError
 
 
 class Basket(models.Model):
@@ -39,6 +40,11 @@ class Basket(models.Model):
         """Общее количество товаров в корзине"""
         return self.items.aggregate(total=Sum('count'))['total'] or 0
 
+    def clean(self):
+        # Только если профиль указан и он неактивен – запрещаем, анонимы могут делать корзину
+        if self.profile and not self.profile.is_active:
+            raise ValidationError({'profile': 'Нельзя создать корзину для деактивированного пользователя'})
+
 
 class BasketItem(models.Model):
     """Товар в корзине"""
@@ -58,3 +64,13 @@ class BasketItem(models.Model):
     def total_price(self):
         """Стоимость товара с учётом количества"""
         return round(self.product.current_price * self.count, 2) # с учетом распродажной цены
+
+    def clean(self):
+        if not self.product:
+            raise ValidationError({'product': 'Товар не выбран'})
+        if not self.product.is_active:
+            raise ValidationError({'product': 'Нельзя добавить в корзину удалённый товар'})
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # вызывает clean() перед сохранением
+        super().save(*args, **kwargs)
