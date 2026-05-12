@@ -1,17 +1,16 @@
-from rest_framework.views import APIView
 import logging
-from .mixins import BasketMixin
-from .serializers import BasketItemSerializer, BasketItemDetailSerializer
-from rest_framework.response import Response
-from rest_framework import status
-from drf_spectacular.utils import extend_schema, OpenApiExample
-from drf_spectacular.utils import OpenApiParameter
-from django.db import transaction
-from rest_framework import serializers
-from catalog.models import Product
-from megano.permissions import AllowAll, IsAuth
-from megano.decorators import catch_all_errors
 
+from django.db import transaction
+from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from megano.decorators import catch_all_errors
+from megano.permissions import AllowAll
+
+from .mixins import BasketMixin
+from .serializers import BasketItemDetailSerializer, BasketItemSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -19,25 +18,26 @@ logger = logging.getLogger(__name__)
 class BasketView(BasketMixin, APIView):
     """Корзина пользователя, просмотр, добавление товаров,
     удаление товаров."""
+
     permission_classes = [AllowAll]
 
     @extend_schema(
         summary="Получение корзины",
-        tags=['basket'],
-        responses=BasketItemDetailSerializer(many=True),)
-
+        tags=["basket"],
+        responses=BasketItemDetailSerializer(many=True),
+    )
     @catch_all_errors
     def get(self, request):
         """Получение корзины пользователя или сессии"""
         basket = self.get_or_create_basket(request)
-        items = basket.items.select_related('product').all()  # оптимизация запросов
+        items = basket.items.select_related("product").all()  # оптимизация запросов
         serializer = BasketItemDetailSerializer(items, many=True)
-        logger.info(f'В корзине {len(items)} позиций товаров')
+        logger.info(f"В корзине {len(items)} позиций товаров")
         return Response(serializer.data)
 
     @extend_schema(
         summary="Добавление товара в корзину",
-        tags=['basket'],
+        tags=["basket"],
         request=BasketItemSerializer,
         responses={200: BasketItemDetailSerializer(many=True)},
         examples=[
@@ -65,82 +65,77 @@ class BasketView(BasketMixin, APIView):
                                 "alt": "hello alt",
                             }
                         ],
-                        "tags": [
-                            {
-                                "id": 0,
-                                "name": "Hello world"
-                            }
-                        ],
+                        "tags": [{"id": 0, "name": "Hello world"}],
                         "reviews": 5,
-                        "rating": 4.6
+                        "rating": 4.6,
                     }
-                ]
+                ],
             ),
-        ]
+        ],
     )
     @catch_all_errors
     @transaction.atomic
     def post(self, request):
         """Добавление товара в корзину или обновление количества"""
-        logger.info('POST: Попытка добавить/обновить товар в корзину')
+        logger.info("POST: Попытка добавить/обновить товар в корзину")
+
+        if not request.user.is_authenticated and "anonymous_session_key" not in request.session:
+            if not request.session.session_key:
+                request.session.save()
+            request.session["anonymous_session_key"] = request.session.session_key
+            request.session.modified = True
 
         serializer = BasketItemSerializer(data=request.data)
 
         if not serializer.is_valid():
-            logger.info(f'Ошибка валидации: {serializer.errors}')
+            logger.info(f"Ошибка валидации: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         # Получаем корзину и профиль
         basket = self.get_or_create_basket(request)
         profile = request.user.profile if request.user.is_authenticated else None
 
-        basket_item = serializer.save(basket=basket, profile=profile)
+        serializer.save(basket=basket, profile=profile)
 
         # Возвращаем обновлённую корзину
-        items = basket.items.select_related('product').all()
+        items = basket.items.select_related("product").all()
         basket_serializer = BasketItemDetailSerializer(items, many=True)
         return Response(basket_serializer.data, status=status.HTTP_200_OK)
 
-
-
     @extend_schema(
         summary="Удаление товара из корзины или уменьшение количества",
-        tags=['basket'],
+        tags=["basket"],
         responses={200: BasketItemDetailSerializer(many=True)},
         parameters=[
             OpenApiParameter(
-                name='id',
+                name="id",
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,
-                description='ID товара (для тестирования в Swagger)',
+                description="ID товара (для тестирования в Swagger)",
             ),
             OpenApiParameter(
-                name='count',
+                name="count",
                 type=int,
                 location=OpenApiParameter.QUERY,
                 required=False,  # Не обязательный, так как может быть в body
-                description='Количество для удаления (для тестирования в Swagger)',
+                description="Количество для удаления (для тестирования в Swagger)",
             ),
         ],
         examples=[
-            OpenApiExample(
-                name="Пример запроса",
-                value={"id": 12, "count": 5},
-                request_only=True
-            ),
-        ]
+            OpenApiExample(name="Пример запроса", value={"id": 12, "count": 5}, request_only=True),
+        ],
     )
     @catch_all_errors
     @transaction.atomic
     def delete(self, request):
         """Удаление товара из корзины или уменьшение количества"""
-        logger.info('DELETE: Попытка удалить/уменьшить товар в корзине')
-
-        serializer = BasketItemSerializer(data=request.data)
+        logger.info("DELETE: Попытка удалить/уменьшить товар в корзине")
+        data = request.data if request.data else request.query_params
+        serializer = BasketItemSerializer(data=data)
 
         if not serializer.is_valid():
-            logger.info(f'Ошибка валидации DELETE: {serializer.errors}')
+            logger.info(f"Ошибка валидации DELETE: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         basket = self.get_or_create_basket(request)
@@ -150,12 +145,12 @@ class BasketView(BasketMixin, APIView):
         basket_item = serializer.delete(basket=basket, profile=profile)
 
         # Возвращаем обновлённую корзину
-        items = basket.items.select_related('product').all()
+        items = basket.items.select_related("product").all()
         basket_serializer = BasketItemDetailSerializer(items, many=True)
 
         if basket_item is None:
-            logger.info('Товар полностью удалён из корзины')
+            logger.info("Товар полностью удалён из корзины")
         else:
-            logger.info(f'Количество товара уменьшено до {basket_item.count}')
+            logger.info(f"Количество товара уменьшено до {basket_item.count}")
 
         return Response(basket_serializer.data, status=status.HTTP_200_OK)

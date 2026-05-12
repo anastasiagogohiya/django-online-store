@@ -1,5 +1,6 @@
-from basket.models import Basket
 import logging
+
+from basket.models import Basket
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +13,12 @@ class BasketMixin:
         if request.user.is_authenticated:
             logger.info(f"Получение корзины пользователя {request.user}")
             basket, created = Basket.objects.get_or_create(
-                profile=request.user.profile,
-                defaults={'session_key': request.session.session_key})
+                profile=request.user.profile, defaults={"session_key": request.session.session_key}
+            )
             # Если корзина существовала, но без session_key - обновляем
             if not created and not basket.session_key and request.session.session_key:
                 basket.session_key = request.session.session_key
-                basket.save(update_fields=['session_key'])
+                basket.save(update_fields=["session_key"])
         else:
             if not request.session.session_key:
                 request.session.create()
@@ -25,7 +26,7 @@ class BasketMixin:
 
             logger.info(f"Получение корзины по сессии: {request.session.session_key}")
             basket, created = Basket.objects.get_or_create(
-                session_key=request.session.session_key,
-                defaults={'profile': None})
+                session_key=request.session.session_key, defaults={"profile": None}
+            )
 
         return basket

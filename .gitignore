@@ -45,3 +45,10 @@ celerybeat-schedule
 
 *.Zone.Identifier
 *.Zone.Identifier
+
+# Игнорируемые файлы и папки (временно код нерабочий)
+ARCHITECTURE.md
+Makefile
+diploma-frontend/build/
+docker/
+megano/poetry.lock

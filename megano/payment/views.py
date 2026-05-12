@@ -1,22 +1,25 @@
-from rest_framework.views import APIView
-from .serializers import PaymentSerializer
-from .models import Payment
-from order.models import Order, OrderStatus
-from rest_framework.response import Response
-from drf_spectacular.utils import OpenApiExample
-from rest_framework import status
-from drf_spectacular.utils import extend_schema
-from app_users.models import Profile
 import logging
+
+from django.conf import settings
+from django.db import transaction
+from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiExample, extend_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from megano.decorators import catch_all_errors
 from megano.permissions import IsAuth
-from django.shortcuts import get_object_or_404
-from django.db import transaction
+from order.models import Order, OrderStatus
+
+from .models import Payment
+from .queue import process_payment_task
+from .serializers import PaymentSerializer
 
 logger = logging.getLogger(__name__)
 
 
-
+# Добавить очередь в оплату
 class PaymentView(APIView):
     permission_classes = [IsAuth]
 
@@ -25,86 +28,59 @@ class PaymentView(APIView):
         request=PaymentSerializer,
         examples=[
             OpenApiExample(
-                'Пример оплаты',
+                "Пример оплаты",
                 request_only=True,
                 value={
-                    "number": "9999999999999999",
+                    "number": "66666666",
                     "name": "Annoying Orange",
                     "month": "02",
                     "year": "2025",
-                    "code": "123"
-                }
+                    "code": "123",
+                },
             )
         ],
-        tags=['payment'],
+        tags=["payment"],
     )
     @catch_all_errors
     @transaction.atomic
     def post(self, request, id):
-        logger.info(f'POST Попытка оплатить заказ {id} ...')
+        """Для оплаты заказа введите id заказа"""
+        logger.info(f"POST Попытка оплатить заказ {id} ...")
 
         # Проверяем существование заказа
         profile = request.user.profile
 
         order = get_object_or_404(Order, id=id, profile=profile)
-        logger.info(f'Заказ {id} найден, сумма: {order.total_cost}')
+        logger.info(f"Заказ {id} найден, сумма: {order.total_cost}")
 
         # Проверяем, не оплачен ли уже заказ
         if order.status == OrderStatus.PAID:
-            logger.warning(f'Попытка повторной оплаты заказа {id}')
-            return Response(
-                {'error': 'Заказ уже оплачен'},
-                status=status.HTTP_400_BAD_REQUEST)
+            logger.warning(f"Попытка повторной оплаты заказа {id}")
+            return Response({"error": "Заказ уже оплачен"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Передаем данные карты в сериализатор
         serializer = PaymentSerializer(data=request.data)
 
         if not serializer.is_valid():
-            logger.error(f'Ошибка валидации: {serializer.errors}')
+            logger.error(f"Ошибка валидации: {serializer.errors}")
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        payment = Payment.objects.create(
-            user=request.user,
-            order=order,
-            amount=order.total_cost,
-            status='pending')
+        card_number = serializer.validated_data["number"]
+        payment = Payment.objects.create(user=request.user, order=order, amount=order.total_cost, status="pending")
+        logger.info(f"Создан платеж #{payment.id} для заказа {id}")
 
-        logger.info(f'Создан платеж #{payment.id} для заказа {id}')
-
-        card_data = serializer.validated_data
-
-        try:
-            # Пока заглушка
-            transaction_id = f"txn_{payment.id}"
-            payment_status = 'success'
-            card_last4 = str(card_data['number'])[-4:]
-
-            # Обновляем платеж
-            payment.transaction_id = transaction_id
-            payment.status = payment_status
-            payment.card_last4 = card_last4
-            payment.save()
-
-            # Обновляем статус заказа
-            order.status = 'paid'
-            order.save()
-
-            logger.info(f'Платеж {payment.id} успешно обработан для заказа {id}')
-
-            return Response({
-                'payment_id': payment.id,
-                'status': payment.status,
-                'transaction_id': payment.transaction_id,
-                'amount': str(payment.amount),
-                'orderId': order.id,
-                'card_last4': card_last4,
-                'message': 'Оплата прошла успешно'}, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            # Если ошибка - меняем статус
-            payment.status = 'failed'
-            payment.save()
-            logger.error(f'Ошибка оплаты для заказа {id}: {str(e)}')
-            return Response(
-                {'error': f'Ошибка при обработке платежа: {str(e)}'},
-                status=status.HTTP_400_BAD_REQUEST)
+        if settings.TESTING:
+            # Синхронный вызов для тестов (без очереди и без on_commit)
+            process_payment_task(payment.id, card_number)
+        else:
+            # Продакшн – асинхронно через очередь и on_commit
+            transaction.on_commit(lambda: process_payment_task.delay(payment.id, card_number))
+        return Response(
+            {
+                "status": "pending",
+                "payment_id": payment.id,
+                "order_id": order.id,
+                "message": "Ждём подтверждения оплаты от платёжной системы.",
+            },
+            status=status.HTTP_200_OK,
+        )

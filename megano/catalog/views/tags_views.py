@@ -1,27 +1,29 @@
-from rest_framework.views import APIView
 import logging
-from catalog.models import Product, Tag, Category
+
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.response import Response
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from rest_framework.views import APIView
+
+from catalog.models import Category, Tag
 from catalog.serializers.catalog_serializers import TagSerializer
-from megano.permissions import AllowAll
 from megano.decorators import catch_all_errors
-
-
+from megano.permissions import AllowAll
 
 logger = logging.getLogger(__name__)
 
+
 class TagsView(APIView):
     """Класс получения тегов по categoryId"""
+
     permission_classes = [AllowAll]
 
     @extend_schema(
         summary="Получение тегов",
-        tags=['tags'],
+        tags=["tags"],
         parameters=[
             OpenApiParameter(
-                name='category',
-                description='categoryId',
+                name="category",
+                description="categoryId",
                 required=False,
                 type=int,
                 default=2,
@@ -32,7 +34,7 @@ class TagsView(APIView):
     )
     @catch_all_errors
     def get(self, request) -> Response:
-        category_id = request.query_params.get('category')
+        category_id = request.query_params.get("category")
         logger.info(f"GET запрос на получение тегов по categoryId: {category_id}")
 
         tags = Tag.objects.all()
@@ -47,10 +49,14 @@ class TagsView(APIView):
                 return Response([])  # возвращаем пустой список
 
             # Получаем теги через товары категории
-            tags = tags.filter(
-                product__category_id=category_id,
-                product__is_active=True  # только активные товары
-            ).distinct().order_by('id')
+            tags = (
+                tags.filter(
+                    product__category_id=category_id,
+                    product__is_active=True,  # только активные товары
+                )
+                .distinct()
+                .order_by("id")
+            )
 
             logger.info(f"Категория {category_id}: найдено тегов={tags.count()}")
 

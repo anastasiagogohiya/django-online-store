@@ -1,14 +1,15 @@
+from drf_spectacular.utils import OpenApiExample, extend_schema_serializer
 from rest_framework import serializers
-from catalog.models import Category, Product, Tag, ProductImage
-from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
-from catalog.serializers.tag_serializers import TagSerializer
+
+from catalog.models import Banner, Product
 from catalog.serializers.product_image_serializer import ProductImageSerializer
-from catalog.models import Banner
+from catalog.serializers.tag_serializers import TagSerializer
+
 
 @extend_schema_serializer(
     examples=[
         OpenApiExample(
-            'Получение баннеров',
+            "Получение баннеров",
             value=[
                 {
                     "id": "123",
@@ -25,32 +26,39 @@ from catalog.models import Banner
                             "alt": "hello alt",
                         }
                     ],
-                    "tags": [
-                        {
-                            "id": 0,
-                            "name": "Hello world"
-                        }
-                    ],
+                    "tags": [{"id": 0, "name": "Hello world"}],
                     "reviews": 5,
-                    "rating": 4.6
+                    "rating": 4.6,
                 }
-            ]
+            ],
         ),
     ]
 )
 class BannerSerializer(serializers.ModelSerializer):
     """Сериализатор для каталога"""
+
     images = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
-    reviews = serializers.IntegerField(source='reviews_count', read_only=True)
+    reviews = serializers.IntegerField(source="reviews_count", read_only=True)
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
-    freeDelivery = serializers.BooleanField(source='free_delivery', read_only=True)
-
+    freeDelivery = serializers.BooleanField(source="free_delivery", read_only=True)
 
     class Meta:
         model = Product
-        fields = ['id', 'category', 'price', 'count', 'date', 'title', 'description',
-                  'freeDelivery', 'images', 'tags', 'reviews', 'rating']
+        fields = [
+            "id",
+            "category",
+            "price",
+            "count",
+            "date",
+            "title",
+            "description",
+            "freeDelivery",
+            "images",
+            "tags",
+            "reviews",
+            "rating",
+        ]
 
     def get_images(self, obj):
         """Возвращает первое изображение товара"""
@@ -65,9 +73,7 @@ class BannerSerializer(serializers.ModelSerializer):
 
 class BannerImageSerializer(serializers.ModelSerializer):
     """Сериализатор для изображений баннера"""
+
     class Meta:
         model = Banner
-        fields = ['src']
-
-
-
+        fields = ["src"]

@@ -1,17 +1,18 @@
-from rest_framework import serializers
-from catalog.models import Category, Product, Tag, ProductImage
+from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema_serializer, OpenApiExample, extend_schema_field
-from catalog.serializers.tag_serializers import TagSerializer
-from catalog.serializers.specification_serializer import SpecificationSerializer
-from catalog.serializers.product_image_serializer import ProductImageSerializer
+from drf_spectacular.utils import OpenApiExample, extend_schema_field, extend_schema_serializer
+from rest_framework import serializers
+
+from catalog.models import Product
 from catalog.serializers.review_serializers import ReviewSerializer
+from catalog.serializers.specification_serializer import SpecificationSerializer
+from catalog.serializers.tag_serializers import TagSerializer
 
 
 @extend_schema_serializer(
     examples=[
         OpenApiExample(
-            'Пример карточки товара',
+            "Пример карточки товара",
             value={
                 "id": 123,
                 "category": 55,
@@ -34,55 +35,65 @@ from catalog.serializers.review_serializers import ReviewSerializer
                     {
                         "src": "https://psk68.ru/files/metod/uchebnik_Informatika/user-images/video.png",
                         "alt": "hello alt",
-                    }
+                    },
                 ],
-                "tags": [
-                    {
-                        "id": 0,
-                        "name": "Hello world"
-                    }
-                ],
+                "tags": [{"id": 0, "name": "Hello world"}],
                 "reviews": [
                     {
                         "author": "Annoying Orange",
                         "email": "no-reply@mail.ru",
                         "text": "rewrewrwerewrwerwerewrwerwer",
                         "rate": 4,
-                        "date": "2023-05-05 12:12"
+                        "date": "2023-05-05 12:12",
                     }
                 ],
-                "specifications": [
-                    {
-                        "name": "Size",
-                        "value": "XL"
-                    }
-                ],
-                "rating": 4.6
-            }
+                "specifications": [{"name": "Size", "value": "XL"}],
+                "rating": 4.6,
+            },
         ),
     ]
 )
 class ProductSerializer(serializers.ModelSerializer):
     """Сериализатор карточки товара по id"""
+
     images = serializers.SerializerMethodField()
     tags = TagSerializer(many=True, read_only=True)
-    specifications = SpecificationSerializer(many=True, read_only=True)  # ← была проблема с отступом
+    specifications = SpecificationSerializer(many=True, read_only=True)
     # Переопределяем поле price
     price = serializers.SerializerMethodField()
     rating = serializers.DecimalField(max_digits=3, decimal_places=2, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
-    freeDelivery = serializers.BooleanField(source='free_delivery', read_only=True)
-    fullDescription = serializers.CharField(source='full_description', read_only=True)  # ← Text → TextField
+    freeDelivery = serializers.BooleanField(source="free_delivery", read_only=True)
+    fullDescription = serializers.CharField(source="full_description", read_only=True)
+    date = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'category', 'price', 'count', 'date', 'title', 'description',
-                  'fullDescription', 'freeDelivery', 'images', 'tags', 'reviews',
-                  'specifications', 'rating']
+        fields = [
+            "id",
+            "category",
+            "price",
+            "count",
+            "date",
+            "title",
+            "description",
+            "fullDescription",
+            "freeDelivery",
+            "images",
+            "tags",
+            "reviews",
+            "specifications",
+            "rating",
+        ]
 
     def get_price(self, obj):
         """Возвращает цену с учетом активной распродажи, иначе возвращается старая цена"""
-        return obj.current_price # метод в модели у меня такой
+        return obj.current_price  # метод в модели у меня такой
+
+    def get_date(self, obj):
+        """Форматирует дату в нужный формат"""
+        local_dt = timezone.localtime(obj.date)
+        return local_dt.strftime("%a %b %d %Y %H:%M:%S GMT%z")
 
     @extend_schema_field(OpenApiTypes.OBJECT)
     def get_images(self, obj):
@@ -92,16 +103,10 @@ class ProductSerializer(serializers.ModelSerializer):
         # Получаем все изображения товара
         for img in obj.images.all():
             if img.image and img.image.name:
-                images_data.append({
-                    "src": img.image.url,
-                    "alt": obj.title
-                })
+                images_data.append({"src": img.image.url, "alt": obj.title})
 
         # псевдоизображение, иначе фронтэнд пишет ошибку
         if not images_data:
-            images_data.append({
-                "src": "https://noimage/",
-                "alt": obj.title
-            })
+            images_data.append({"src": "https://noimage/", "alt": obj.title})
 
         return images_data
