@@ -1,0 +1,31 @@
+{% extends "admin/change_form.html" %}
+
+{# Отключаем стандартные блоки вывода inline #}
+{% block inline_field_sets %}{% endblock %}
+{% block after_related_objects %}{% endblock %}
+
+{% block field_sets %}
+    {% for fieldset in adminform %}
+        {% if fieldset.name == "Информация о заказе" %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+
+    {% for inline_admin_formset in inline_admin_formsets %}
+        {% if inline_admin_formset.opts.is_order_item %}
+            {% include inline_admin_formset.opts.template %}
+        {% endif %}
+    {% endfor %}
+
+    {% for fieldset in adminform %}
+        {% if fieldset.name != "Информация о заказе" %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endif %}
+    {% endfor %}
+
+    {% for inline_admin_formset in inline_admin_formsets %}
+        {% if not inline_admin_formset.opts.is_order_item %}
+            {% include inline_admin_formset.opts.template %}
+        {% endif %}
+    {% endfor %}
+{% endblock %}

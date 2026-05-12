@@ -1,18 +1,18 @@
 import json
 import logging
-from typing import Dict, Tuple, Union, Optional
-from django.db.models import QuerySet, Q
-from django.http import HttpRequest
+from typing import Dict, Optional, Tuple, Union
+
+from django.db.models import Q, QuerySet
 
 logger = logging.getLogger(__name__)
 
 
-def extract_filters(request)-> Dict[str, Union[str, int, float, bool]]:
+def extract_filters(request) -> Dict[str, Union[str, int, float, bool]]:
     """Извлекает фильтры из запроса"""
     filters = {}
 
     # JSON filter
-    filter_json = request.query_params.get('filter')
+    filter_json = request.query_params.get("filter")
     if filter_json:
         try:
             filters.update(json.loads(filter_json))
@@ -20,10 +20,10 @@ def extract_filters(request)-> Dict[str, Union[str, int, float, bool]]:
             pass
 
     # Nested filters
-    nested_keys = ['name', 'minPrice', 'maxPrice', 'freeDelivery', 'available']
+    nested_keys = ["name", "minPrice", "maxPrice", "freeDelivery", "available"]
     for key in nested_keys:
-        value = request.query_params.get(f'filter[{key}]')
-        if value is not None and value != '':
+        value = request.query_params.get(f"filter[{key}]")
+        if value is not None and value != "":
             filters[key] = value
 
     return filters
@@ -39,27 +39,27 @@ def apply_search_filter(queryset: QuerySet, search_text: str) -> QuerySet:
 
     # точное совпадение
     q_objects |= (
-            Q(title__icontains=search_lower) |
-            Q(description__icontains=search_lower) |
-            Q(full_description__icontains=search_lower)
+        Q(title__icontains=search_lower)
+        | Q(description__icontains=search_lower)
+        | Q(full_description__icontains=search_lower)
     )
 
     # без последней буквы
     if len(search_lower) > 1:
         without_last = search_lower[:-1]
         q_objects |= (
-                Q(title__icontains=without_last) |
-                Q(description__icontains=without_last) |
-                Q(full_description__icontains=without_last)
+            Q(title__icontains=without_last)
+            | Q(description__icontains=without_last)
+            | Q(full_description__icontains=without_last)
         )
 
     # без первой буквы (Наушники наушники)
     if len(search_lower) > 2:
         without_first = search_lower[1:]
         q_objects |= (
-                Q(title__icontains=without_first) |
-                Q(description__icontains=without_first) |
-                Q(full_description__icontains=without_first)
+            Q(title__icontains=without_first)
+            | Q(description__icontains=without_first)
+            | Q(full_description__icontains=without_first)
         )
 
     # по отдельным словам
@@ -68,18 +68,14 @@ def apply_search_filter(queryset: QuerySet, search_text: str) -> QuerySet:
         for word in words:
             if len(word) > 2:
                 q_objects |= (
-                        Q(title__icontains=word) |
-                        Q(description__icontains=word) |
-                        Q(full_description__icontains=word)
+                    Q(title__icontains=word) | Q(description__icontains=word) | Q(full_description__icontains=word)
                 )
 
     return queryset.filter(q_objects).distinct()
 
 
 def apply_price_filter(
-    queryset: QuerySet,
-    min_price: Optional[Union[str, float, int]],
-    max_price: Optional[Union[str, float, int]]
+    queryset: QuerySet, min_price: Optional[Union[str, float, int]], max_price: Optional[Union[str, float, int]]
 ) -> QuerySet:
     """Применяет фильтр по цене"""
     if min_price:
@@ -100,18 +96,18 @@ def apply_price_filter(
 def to_bool(value: Union[str, bool, int, None]) -> bool:
     """Конвертирует строку в булево значение"""
     if isinstance(value, str):
-        return value.lower() == 'true'
+        return value.lower() == "true"
     return bool(value)
 
 
-def get_pagination_params(request)-> Tuple[int, int]:
+def get_pagination_params(request) -> Tuple[int, int]:
     """Получает и валидирует параметры пагинации"""
     default_limit = 20
     max_limit = 100
 
     try:
-        limit = int(request.query_params.get('limit', default_limit))
-        current_page = int(request.query_params.get('currentPage', 1))
+        limit = int(request.query_params.get("limit", default_limit))
+        current_page = int(request.query_params.get("currentPage", 1))
 
         # Валидация
         limit = max(1, min(limit, max_limit))
