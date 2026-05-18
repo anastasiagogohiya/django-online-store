@@ -13,15 +13,12 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 import sys
 from pathlib import Path
-from typing import cast
 
 from dotenv import load_dotenv
 
-load_dotenv()  # загружаем переменные окружения из .env
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+load_dotenv(BASE_DIR / ".env")  # загружаем переменные окружения из .env
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -34,6 +31,7 @@ if not SECRET_KEY:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "true"
+
 
 # Application definition
 
@@ -57,12 +55,14 @@ INSTALLED_APPS = [
     "order.apps.OrderConfig",
     "payment.apps.PaymentConfig",
     "api",
+    "django_prometheus",
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.csp.ContentSecurityPolicyMiddleware",  # CSP защита (атаки на 2 месте по распространенности)
-    "megano.middleware.SecurityLoggingMiddleware",  # логирование подозрительных попыток
+    # "megano.middleware.SecurityLoggingMiddleware",  # логирование подозрительных попыток
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "api.middleware.CSRFExemptForTokenAuthMiddleware",  # иначе проблемы с CsrfViewMiddleware
@@ -71,7 +71,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # из megano/middleware.py
-    "megano.middleware.ResponseTimeMiddleware",
+    # "megano.middleware.ResponseTimeMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
@@ -152,8 +153,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = "static/"
-STATIC_ROOT = BASE_DIR / 'static_collected'
+STATIC_URL = "/static/"  # для продакшн слеш добавила
+STATIC_ROOT = BASE_DIR / "static_collected"
 # Медиа-файлы
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
@@ -241,11 +242,25 @@ LOGGING = {
 }
 
 # Celery Reddis
-CELERY_BROKER_URL = os.getenv("REDIS_URL", "memory://")
-CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "memory://")
+REDIS_URL = os.getenv("REDIS_URL", "")
+
+if REDIS_URL:
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
+else:
+    CELERY_BROKER_URL = "memory://"
+    CELERY_RESULT_BACKEND = "cache+memory://"
+
+
+# CELERY_BROKER_URL = os.getenv("REDIS_URL", "memory://")
+# CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "memory://")
 CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# Отключена ассинхронность очередей оплаты в режиме Дебага и тестирования
+if DEBUG:
+    CELERY_TASK_ALWAYS_EAGER = True
 
 TESTING = "pytest" in sys.modules or "test" in sys.argv
 
@@ -253,18 +268,48 @@ if TESTING:
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
 
+
+PROMETHEUS_LATENCY_BUCKETS = (
+    0.01,
+    0.025,
+    0.05,
+    0.075,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    1.0,
+    2.5,
+    5.0,
+    7.5,
+    10.0,
+    25.0,
+    50.0,
+    75.0,
+    float("inf"),
+)
+PROMETHEUS_METRICS_EXPORT_ENABLE_URL_TAGGING = True
+
+
 # Продакшн
 if not DEBUG:
     # Проверка, что все необходимые переменные окружения заданы
-    required_vars = ["POSTGRES_DB", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB_HOST", "POSTGRES_DB_PORT", "REDIS_URL"]
+    required_vars = [
+        "POSTGRES_DB",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DB_HOST",
+        "POSTGRES_DB_PORT",
+        "REDIS_URL",
+    ]
     missing = [var for var in required_vars if not os.getenv(var)]
     if missing:
         raise ValueError(f"Missing env vars: {', '.join(missing)}")
 
     # HTTPS и заголовки безопасности
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # SECURE_SSL_REDIRECT = True
+    # SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 31536000
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -289,7 +334,8 @@ if not DEBUG:
     # БД POSTGRESQL
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.postgresql",
+            "ENGINE": "django_prometheus.db.backends.postgresql",
+            # "ENGINE": "django.db.backends.postgresql",
             "NAME": os.getenv("POSTGRES_DB"),
             "USER": os.getenv("POSTGRES_USER"),
             "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
@@ -297,13 +343,10 @@ if not DEBUG:
             "PORT": os.getenv("POSTGRES_DB_PORT"),
         }
     }
-    # Celery редис
-    CELERY_BROKER_URL = cast(str, os.getenv("REDIS_URL"))
-    CELERY_RESULT_BACKEND = cast(str, os.getenv("REDIS_URL"))
 
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
-    #LOG_DIR = os.path.join(BASE_DIR, "logs")
-    #os.makedirs(LOG_DIR, exist_ok=True)
-    #cast(dict, LOGGING)["handlers"]["file"]["filename"] = os.path.join(LOG_DIR, "django.log")
+    # LOG_DIR = os.path.join(BASE_DIR, "logs")
+    # os.makedirs(LOG_DIR, exist_ok=True)
+    # cast(dict, LOGGING)["handlers"]["file"]["filename"] = os.path.join(LOG_DIR, "django.log")

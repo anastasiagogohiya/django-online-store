@@ -20,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class OrderView(APIView):
-    permission_classes = []
 
     @extend_schema(
         summary="Получение заказов",

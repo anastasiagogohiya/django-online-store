@@ -1,6 +1,7 @@
 import json
 import logging
 from typing import Dict, Optional, Tuple, Union
+from django.db.models import Case, When, Value, IntegerField
 
 from django.db.models import Q, QuerySet
 
@@ -71,7 +72,25 @@ def apply_search_filter(queryset: QuerySet, search_text: str) -> QuerySet:
                     Q(title__icontains=word) | Q(description__icontains=word) | Q(full_description__icontains=word)
                 )
 
-    return queryset.filter(q_objects).distinct()
+    queryset = queryset.filter(q_objects).distinct()
+
+    # Добавляем аннотацию: точное совпадение для исходного поискового текста
+    # Так как по слову крем выводились сначала не крема а другие товары
+    exact_condition = (
+            Q(title__icontains=search_lower) |
+            Q(description__icontains=search_lower) |
+            Q(full_description__icontains=search_lower)
+    )
+    queryset = queryset.annotate(
+        exact_match=Case(
+            When(exact_condition, then=Value(1)),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
+    )
+    return queryset
+
+
 
 
 def apply_price_filter(

@@ -4,6 +4,7 @@ import requests
 from datetime import datetime, timedelta
 from io import BytesIO
 from decimal import Decimal
+import re
 from django.utils import timezone
 
 from django.conf import settings
@@ -31,8 +32,9 @@ fake = Faker("ru_RU")
 
 
 def generate_phone_number():
-    """Генерирует телефон в формате только цифр (10 цифр)"""
-    return int(f"9{random.randint(100000000, 999999999)}")
+    """Генерирует номер телефона в пределах PositiveIntegerField (до 2 147 483 647)"""
+    # Сделаем 9-значные номера от 100 000 000 до 999 999 999
+    return random.randint(100_000_000, 999_999_999)
 
 
 def create_category_image(category_name):
@@ -132,14 +134,21 @@ def create_product_image(product_title, index, category_title=None):
         lines = lines[:4]
         lines[-1] = lines[-1][:17] + "..."
     y_offset = 140
+
     for line in lines:
-        bbox = draw.textbbox((0, 0), line, font=font)
+        # Оставляем только русские/английские буквы, цифры, пробел, дефис, точку
+        clean_line = re.sub(r'[^a-zA-Zа-яА-ЯёЁ0-9\s\-\.%"]', '', line)
+        if not clean_line.strip():
+            clean_line = "Товар"
+        bbox = draw.textbbox((0, 0), clean_line, font=font)
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
         x = (400 - text_width) // 2
-        draw.rectangle([x-5, y_offset-2, x+text_width+5, y_offset+text_height+2], fill=(0, 0, 0, 128))
-        draw.text((x, y_offset), line, fill=(255, 255, 255), font=font)
+        draw.rectangle([x - 5, y_offset - 2, x + text_width + 5, y_offset + text_height + 2], fill=(0, 0, 0, 128))
+        draw.text((x, y_offset), clean_line, fill=(255, 255, 255), font=font)
         y_offset += text_height + 10
+
+
     img_io = BytesIO()
     img.save(img_io, format="PNG", quality=90)
     filename = f"{slugify(product_title[:30])}_{index}_{random.randint(1000, 9999)}.png"
@@ -399,7 +408,7 @@ class Command(BaseCommand):
 
             profile = admin_user.profile
             profile.full_name = "Брэд Питт"
-            profile.phone = 9991234567  # любой номер телефона
+            profile.phone = 999123456  # любой номер телефона
 
             # Скачиваем фото Брэда Питта
             avatar_file = download_avatar(admin_user.username, 'male', 999)  # Небольшой индекс для уникальности

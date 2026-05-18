@@ -174,10 +174,11 @@ class CatalogView(generics.ListAPIView):
             if tag_ids:
                 queryset = queryset.filter(tags__id__in=tag_ids).distinct()
 
-        # Сортировка
-        sort_field = self.request.query_params.get("sort", "date")
+        # Сортировка (была добавлена приоритетная сортировка если есть
+        # поиск по названию сначала по точному совпадению,
+        # слово крем не выводилось первым)
+        sort_param = self.request.query_params.get("sort")
         sort_type = self.request.query_params.get("sortType", "dec")
-
         sort_field_mapping = {
             "reviews": "reviews_count",
             "price": "price",
@@ -185,12 +186,14 @@ class CatalogView(generics.ListAPIView):
             "date": "date",
             "title": "title",
         }
+        sort_field = sort_field_mapping.get(sort_param, "date") if sort_param else "date"
+        if sort_type == "dec":
+            sort_field = f"-{sort_field}"
 
-        sort_field = sort_field_mapping.get(sort_field, "date")
-
-        if sort_field:
-            if sort_type == "dec":
-                sort_field = f"-{sort_field}"
+        # Если есть поиск по названию — сначала точные совпадения, затем остальная сортировка
+        if filters.get("name"):
+            queryset = queryset.order_by("-exact_match", sort_field)
+        else:
             queryset = queryset.order_by(sort_field)
 
         logger.info(f"Итоговое количество товаров: {queryset.count()}")

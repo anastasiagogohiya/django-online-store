@@ -22,7 +22,7 @@ class AvatarSerializer(serializers.ModelSerializer):
         model = Avatar
         fields = ["src", "alt"]  # JSON будут {"src":..alt..}
 
-    def get_src(self, obj) -> str:
+    def get_src(self, obj) -> str | None:
         """Возвращает URL аватара"""
         return obj.src.url if obj.src else None
 

@@ -1,0 +1,133 @@
+{
+  "title": "Megano - Django Monitoring (Improved)",
+  "tags": ["django", "prometheus", "improved"],
+  "timezone": "browser",
+  "panels": [
+    {
+      "title": "HTTP Requests per second",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(django_http_requests_total_by_method_total[1m])",
+          "legendFormat": "Method {{method}}"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {"axisLabel": "Requests per second"}
+        }
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "bottom"}
+      }
+    },
+    {
+      "title": "HTTP Errors (4xx, 5xx per second)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(django_http_responses_total_by_status_total{status=~\"4..\"}[1m])",
+          "legendFormat": "4xx errors"
+        },
+        {
+          "expr": "rate(django_http_responses_total_by_status_total{status=~\"5..\"}[1m])",
+          "legendFormat": "5xx errors"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {"axisLabel": "Errors per second"}
+        }
+      }
+    },
+    {
+      "title": "Requests latency (95th percentile, with middleware)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(django_http_requests_latency_including_middlewares_seconds_bucket[5m]))",
+          "legendFormat": "Latency (95th)"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {"axisLabel": "Latency (seconds)"}
+        }
+      }
+    },
+    {
+      "title": "DB queries per second",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(django_db_execute_total[1m])",
+          "legendFormat": "SQL queries"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {"axisLabel": "Queries per second"}
+        }
+      }
+    },
+    {
+      "title": "DB query duration (95th percentile)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(django_db_query_duration_seconds_bucket[5m]))",
+          "legendFormat": "Query duration"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": {"axisLabel": "Duration (milliseconds)"}
+        }
+      }
+    },
+    {
+      "title": "Celery queue length",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "celery_queue_length",
+          "legendFormat": "Tasks in queue"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {"axisLabel": "Number of tasks"}
+        }
+      }
+    },
+    {
+      "title": "Redis commands per second",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "rate(redis_commands_total[1m])",
+          "legendFormat": "Redis ops"
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {"axisLabel": "Commands per second"}
+        }
+      }
+    }
+  ]
+}
