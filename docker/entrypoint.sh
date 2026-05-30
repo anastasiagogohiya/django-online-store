@@ -20,6 +20,7 @@ wait_for_redis() {
 # ждём PostgreSQL
 wait_for_postgres
 
+
 # Определяем роль, поэтапно попорядку
 ROLE=${CONTAINER_ROLE:-app}
 
@@ -39,6 +40,13 @@ elif [ "$ROLE" = "celery" ]; then
     wait_for_redis
     echo "Starting Celery worker..."
     exec celery -A megano worker --loglevel=info
+
+
+elif [ "$ROLE" = "warehouse_consumer" ]; then
+    # ждём Kafka и создаём тему если нет
+    while ! nc -z kafka 9092; do sleep 0.1; done
+    kafka-topics --create --topic order-events --bootstrap-server kafka:9092 --partitions 1 --replication-factor 1 2>/dev/null || true
+    exec python manage.py run_warehouse_consumer
 
 else
     echo "Unknown role: $ROLE"

@@ -19,7 +19,10 @@ up: init-env
 
 # Просмотр логов всех сервисов
 logs:
-	cd docker && docker compose logs -f app db redis celery nginx
+	cd docker && docker compose logs -f app db redis celery
+
+logs-kafka-wh:
+	cd docker && docker compose logs -f warehouse_consumer
 
 logs-mon:
 	cd docker && docker compose logs -f prometheus grafana postgres-exporter redis-exporter nginx-exporter celery-exporter
@@ -46,8 +49,10 @@ rebuild:
 	cd docker && docker compose down && docker compose build --no-cache && docker compose up -d
 
 
-# Тотальная очистка и пересборка
+# Тотальная очистка и пересборка, особождем порт кафки
 .PHONY: total clean
 total clean:
-	cd docker && docker-compose down --volumes --remove-orphans && docker system prune -f
-
+	cd docker && docker-compose down --volumes --remove-orphans
+	-docker stop kafka_new 2>/dev/null || true
+	-docker rm kafka_new 2>/dev/null || true
+	docker system prune -f

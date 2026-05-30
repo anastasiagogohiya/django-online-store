@@ -55,8 +55,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"  # http://localhost:8000 делаем недоступным, чтобы не обошли nginx
+
     depends_on:
       db:
         condition: service_healthy
@@ -68,8 +69,8 @@ services:
       - media_volume:/app/media
       - static_volume:/app/static_collected
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8000/" ]
-      interval: 5s
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')"]  # хост внутри приложения
+      interval: 10s
       timeout: 5s
       retries: 5
       start_period: 90s
@@ -79,6 +80,24 @@ services:
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       #- PROMETHEUS_MULTIPROC_DIR=/tmp/prometheus-django
 
+    restart: unless-stopped
+    networks:
+      - monitoring
+  # Warehouse consumer - склад читает сообщения из Kafka
+  warehouse_consumer:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    environment:
+      - CONTAINER_ROLE=warehouse_consumer
+    depends_on:
+      - kafka
+      - db
+    env_file:
+      - ../megano/.env
+    volumes:
+      - media_volume:/app/media
+      - static_volume:/app/static_collected
     restart: unless-stopped
     networks:
       - monitoring
@@ -98,6 +117,52 @@ services:
     restart: unless-stopped
     networks:
       - monitoring
+
+  # Zookeeper – необходим для Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+  # Kafka – брокер сообщений
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - monitoring
+    restart: unless-stopped
+
+    # Опционально: Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - monitoring
+    restart: unless-stopped
 
 
   prometheus:
@@ -164,7 +229,7 @@ services:
     restart: unless-stopped
 
   celery-exporter:
-    image: danihodovic/celery-exporter:latest
+    image: danihodovic/celery-exporter
     container_name: celery-exporter
     command:
       - '--broker-url=redis://redis:6379/0'
@@ -182,9 +247,11 @@ volumes:
   media_volume:
   grafana-storage:
   prometheus-data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
 
 # Сеть для мониторинга
 networks:
   monitoring:
     driver: bridge
-
