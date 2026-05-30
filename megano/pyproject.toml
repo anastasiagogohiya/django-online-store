@@ -66,6 +66,8 @@ urllib3 = "2.7.0"
 vine = "5.1.0"
 wcwidth = "0.7.0"
 django-prometheus = "^2.4.1"
+confluent-kafka = "^2.14.0"
+
 
 [tool.poetry.group.dev.dependencies]
 types-requests = ">=2.33.0.20260508"
@@ -124,10 +126,10 @@ ignore_errors = true
 DJANGO_SETTINGS_MODULE = "megano.settings"
 addopts = "--reuse-db"
 python_files = ["test_*.py", "tests.py", "*_test.py", "tests_*.py"]
-testpaths = ["app_users", "catalog", "basket", "order", "payment"]
+testpaths = ["app_users", "catalog", "basket", "order", "payment", "kafka_integration"]
 
 [tool.coverage.run]
-source = ["app_users", "catalog", "basket", "order", "payment", "megano"]
+source = ["app_users", "catalog", "basket", "order", "payment", "megano", "kafka_integration"]
 omit = [
     ".venv/*",
     "*/migrations/*",

@@ -6,7 +6,7 @@ python_django_diploma
 ├── README.md, ARCHITECTURE.md
 ├── .gitignore, .dockerignore
 ├── Makefile                     # Команды для докера, запуска проекта
-├── docker/                      # env ссылочный файл, Dockerfile, docker-compose.yml, entrypoint.sh и др.
+├── docker/                      # Dockerfile, docker-compose.yml, entrypoint.sh и др.
 ├── diploma-frontend/            # Пакет для фронтенда
 └── megano/                      # Корень Django-проекта
     ├── manage.py                     
@@ -15,10 +15,8 @@ python_django_diploma
     ├── Makefile                 # Автоматизация задач (пайтесты, линтеры, покрытие)
     ├── db.sqlite3               # SQLite база данных (разработка DEBUG=true)
     ├── .coverage                    
-    ├── .env   
-    ├── .env.example     
+    ├── .env     
     ├── poetry.lock                                 
-    │
     ├── megano/                       # Внутренний пакет проекта
     │   ├── settings.py               
     │   ├── urls.py / wsgi.py / asgi.py            
@@ -56,23 +54,47 @@ python_django_diploma
     │   ├── serializers.py / admin.py
     │   ├── services.py / utils.py    # Бизнес-логика заказов
     │   ├── utils.py / mixins.py
-    │   ├── templates/                # Для админской панели
+    │   ├── templates/                # Для админской панели    
     │   └── tests/
     │
     ├── payment/                      # Платежи
     │   ├── models.py / views.py
     │   ├── serializers.py
-    │   ├── queue.py                  # Очередь платежей (Celery tasks)
+    │   ├── queue.py                  # Очередь платежей (Celery tasks), импортирует publish_order_paid
     │   └── tests.py / admin.py
     │
+    ├── kafka_integration/          # Kafka и передача сообщений на склад
+    │   ├── producer.py, config.py    
+    │   ├── publisher.py            # publish_order_paid
+    │   ├── consumers/              # Склад получает задание на сбор заказа
+    │   ├── models                  # Модель PickingTask  
+    │   └── management/commands/run_warehouse_consumer.py
+    │  
     └── media/                        # Пользовательские загружаемые файлы (в реальном продакшене нужен сервер для хранения)
-       ├── app_users/
-       └── catalog/
           
 ```
+
 
 | Слой                     | Реализация в проекте                                                                                                             |
 |--------------------------|----------------------------------------------------------------------------------------------------------------------------------|
 | **Model (Модель)**       | Модели в `catalog`, `order`, `basket`, `payment`, `app_users`; миграции; база данных PostgreSQL (продакшн) / SQLite (разработка) |
 | **View (Представление)** | `views.py`, `services.py`, `utils.py`, `api/` (REST API), middleware, сигналы, Celery (асинхронная логика)                       |
 | **Template (Шаблон)**    | `diploma-frontend` (HTML, CSS, статика); для API – сериализаторы + JSON                                                          |
+
+
+
+
+**Логика работы CELERY REDIS и KAFKA**
+
+[Пользователь] → POST /payment/{id} → Django
+    ↓
+Создаёт Payment, ставит Celery-задачу (Redis брокер)
+    ↓
+Celery worker: process_payment_task
+    ↓
+Успешная оплата → статус заказа = PAID
+    ↓
+Публикация события в Kafka (order_paid)
+    ↓
+Kafka топик "order_events"  
+    → Consumer: Склад (формирует сборку заказа)

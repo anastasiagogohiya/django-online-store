@@ -20,7 +20,7 @@ format:
 	ruff format megano/
 
 type-check:
-	mypy app_users catalog basket order payment megano
+	mypy app_users catalog basket order payment megano kafka_integration
 
 test:
 	pytest
@@ -31,10 +31,37 @@ coverage:
 all: lint type-check test coverage
 	@echo "✅ All checks passed!"
 
-clean:
-	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".ruff_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name "htmlcov" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".coverage" -delete 2>/dev/null || true
+
+.PHONY: kafka
+kafka:
+	@echo "🚀 Запуск Kafka, Zookeeper..."
+	cd docker && docker-compose -f docker-compose.kafka.yml up -d
+
+
+# Celery worker (должен выполняться из корня megano с активированным poetry)
+.PHONY: celery-worker
+celery-worker:
+	@echo "🧵 Запуск Celery worker..."
+	cd megano && poetry run celery -A megano worker -l info
+
+# Consumer склада (обработка сообщений из Kafka)
+.PHONY: warehouse-consumer
+warehouse-consumer:
+	@echo "📦 Запуск consumer склада..."
+	cd megano && poetry run python manage.py run_warehouse_consumer
+
+# Запуск Django development сервера
+.PHONY: runserver
+runserver:
+	cd megano && poetry run python manage.py runserver
+
+# (Опционально) всё вместе для локальной разработки: инфраструктура + миграции + демо-данные
+.PHONY: dev
+dev:
+	@echo "🔄 Применяем миграции и загружаем демо-данные..."
+	cd megano && poetry run python manage.py migrate
+	cd megano && poetry run python manage.py load_demo_data
+	@echo "✅ Готово. Теперь в отдельных терминалах выполните:"
+	@echo "   make celery-worker"
+	@echo "   make warehouse-consumer"
+	@echo "   make runserver"

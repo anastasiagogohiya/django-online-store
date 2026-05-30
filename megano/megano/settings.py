@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django_filters",
     "frontend",
     "django_extensions",
+    "kafka_integration.apps.KafkaIntegrationConfig",
     "model_bakery",
     "app_users.apps.AppUsersConfig",
     "catalog.apps.CatalogConfig",
@@ -252,8 +253,6 @@ else:
     CELERY_RESULT_BACKEND = "cache+memory://"
 
 
-# CELERY_BROKER_URL = os.getenv("REDIS_URL", "memory://")
-# CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "memory://")
 CELERY_TIMEZONE = "Europe/Moscow"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
@@ -261,6 +260,12 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 # Отключена ассинхронность очередей оплаты в режиме Дебага и тестирования
 if DEBUG:
     CELERY_TASK_ALWAYS_EAGER = True
+
+
+# Kafka
+KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_ORDER_TOPIC = os.getenv("KAFKA_ORDER_TOPIC", "order-events")
+
 
 TESTING = "pytest" in sys.modules or "test" in sys.argv
 
@@ -346,7 +351,3 @@ if not DEBUG:
 
     USE_X_FORWARDED_HOST = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-    # LOG_DIR = os.path.join(BASE_DIR, "logs")
-    # os.makedirs(LOG_DIR, exist_ok=True)
-    # cast(dict, LOGGING)["handlers"]["file"]["filename"] = os.path.join(LOG_DIR, "django.log")

@@ -4,6 +4,7 @@ import random
 from celery import shared_task
 from django.db import transaction
 
+from kafka_integration.publisher import publish_order_paid
 from order.models import OrderStatus
 
 from .models import Payment
@@ -39,6 +40,10 @@ def process_payment_task(self, payment_id, card_number):
 
                 order.status = OrderStatus.PAID
                 order.save(update_fields=["status"])
+
+                # отдаем задание в модуль Кафка, после того как заказ ОПЛАЧЕН
+                publish_order_paid(order) # передаем объект
+
 
             logger.info(f"Платеж {payment_id} успешно завершён")
             logger.info(f"Заказ #{order.id} оплачен на сумму {order.total_cost} S.")

@@ -18,7 +18,8 @@
 - Добавление товара в корзину
 - Изменение количества товара в корзине
 - Оформление заказа
-- Оплата заказа
+- Оплата заказа (Celery + Redis)
+- Отправка через Kafka сообщений на склад по сбору заказа
 - Просмотр отзывов, написание отзывов
 - Внедрение ролей с определенными разрешениями: Админ, Клиент, Менеджер, Продавец
 - Создание, редактирование, мягкое удаление сущностей через Административную панель
@@ -59,7 +60,7 @@ cd python_django_diploma
 ```bash
 make up
 ```
-Откройте браузер http://localhost:8000 и проверьте работу сайта.
+Откройте браузер http://localhost или http://127.0.0.1 и проверьте работу сайта.
 
 ------------------
 При выполнении команды make up автоматически:
@@ -70,6 +71,8 @@ make up
 - Применяются миграции
 - Запускается сервис Редис
 - Запускается сервис Celery
+- Запускается сервис Kafka
+- Запускается сервис склада для приема сообщений от Kafka
 - Запускается NGINX
 - Запускается GRAFANA + PROMETHEUS
 - Загружаются демонстрационные данные в БД
@@ -86,6 +89,7 @@ make down
 ```bash
 make logs
 ```
+Сообщения передающиеся Кафка можно посмотреть на http://localhost:8080
 
 Предупреждение:
 порты 8000 (Django), 3000 (Grafana), 9090 (Prometheus) должны быть свободны!
@@ -137,9 +141,10 @@ make down
 cd megano
 pipx install poetry
 poetry install
-python manage.py migrate
-python manage.py load_demo_data
-python manage.py runserver
+poetry shell
+cd megano && poetry run python manage.py migrate
+cd megano && poetry run python manage.py load_demo_data
+cd megano && poetry run python manage.py runserver
 ```
 
 ### 🧪 Тестирование, запуск тестов, покрытие
@@ -185,6 +190,7 @@ python_django_diploma
     ├── basket/                  # Корзина покупок
     ├── order/                   # Заказы
     ├── payment/                 # Платежи, очередь
+    ├── kafka_integration/       # Kafka, передача событий на склад
     ├── media/                   # Изображения
     ├── manage.py                
     └── poetry.lock, .env, pyproject.toml                   
@@ -199,13 +205,15 @@ python_django_diploma
 - Python 3.12
 - Django 5.0
 - Django REST Framework
-- Celery
 - Gunicorn
 
 **Базы данных и кэширование**
 - PostgreSQL (продакшн)
 - SQLite (разработка)
-- Redis
+
+**Брокеры сообщений и очереди**
+- Celery + Redis
+- Kafka (события для склада)
 
 **Контейнеризация и оркестрация**
 - Docker
@@ -219,7 +227,7 @@ python_django_diploma
 - Экспортёры (PostgreSQL, Redis, Nginx, Celery)
 
 **Тестирование и качество кода**
-- pytest (покрытие 90%)
+- pytest (покрытие 89%)
 - ruff (линтер + форматтер)
 - mypy (проверка типов)
 
