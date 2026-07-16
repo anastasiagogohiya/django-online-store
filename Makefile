@@ -4,7 +4,7 @@
 init-env:
 	@if [ ! -f megano/.env ]; then \
 		cd megano && cp .env.example .env; \
-		KEY=$$(python -c "import secrets; print(secrets.token_urlsafe(32))"); \
+		KEY=$$(openssl rand -base64 32 | tr -d '\n'); \
 		sed -i "s/secret_key_here/$$KEY/" .env; \
 		echo "Файл .env создан, секретный ключ сгенерирован."; \
 	else \
