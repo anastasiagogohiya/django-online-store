@@ -54,7 +54,7 @@ Docker Compose 5.0.2
 1. Клонируем репозиторий
 ```bash
 git clone https://github.com/anastasiagogohiya/django-online-store.git
-cd python_django_diploma
+cd django-online-store
 ```
 2. Запускаем проект (вручную ничего делать не нужно!)
 ```bash
