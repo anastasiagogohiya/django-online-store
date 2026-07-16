@@ -53,7 +53,7 @@ Docker Compose 5.0.2
 **Внимание! Команды make - из Makefile.**
 1. Клонируем репозиторий
 ```bash
-git clone https://gitlab.skillbox.ru/anastasiia_gogokhiia/python_django_diploma.git
+git clone https://github.com/anastasiagogohiya/django-online-store.git
 cd python_django_diploma
 ```
 2. Запускаем проект (вручную ничего делать не нужно!)

@@ -50,9 +50,15 @@ rebuild:
 
 
 # Тотальная очистка и пересборка, особождем порт кафки
-.PHONY: total clean
-total clean:
-	cd docker && docker-compose down --volumes --remove-orphans
+# Тотальная очистка и пересборка, освобождаем порт кафки
+.PHONY: total-clean
+total-clean:
+	@echo "🧹 Полная очистка проекта..."
+	cd docker && docker compose down --volumes --remove-orphans --rmi all
 	-docker stop kafka_new 2>/dev/null || true
 	-docker rm kafka_new 2>/dev/null || true
-	docker system prune -f
+	@echo "🗑️  Удаляем .env файл..."
+	rm -f megano/.env
+	@echo "🗑️  Удаляем кэш сборки..."
+	docker builder prune -f
+	@echo "✅ Готово к чистому запуску!"
