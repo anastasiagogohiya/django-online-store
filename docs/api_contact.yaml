@@ -1,0 +1,2158 @@
+openapi: 3.0.3
+info:
+  title: MEGANO shop project API
+  version: 1.0.0
+  description: API для интернет-магазина
+paths:
+  /api/banners/:
+    get:
+      operationId: banners_list
+      description: Возвращает список баннеров для отображения. До 4 баннеров, чтобы
+        в фронтэнде было красивое отображение
+      summary: Получение баннеров
+      tags:
+      - catalog
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Banner'
+              examples:
+                ПолучениеБаннеров:
+                  value:
+                  - - id: '123'
+                      category: 55
+                      price: 500.67
+                      count: 12
+                      date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                        Time)
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                        alt: hello alt
+                      tags:
+                      - id: 0
+                        name: Hello world
+                      reviews: 5
+                      rating: 4.6
+                  summary: Получение баннеров
+          description: ''
+  /api/basket/:
+    get:
+      operationId: basket_list
+      description: Получение корзины пользователя или сессии
+      summary: Получение корзины
+      tags:
+      - basket
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BasketItemDetail'
+              examples:
+                ПримерКорзины:
+                  value:
+                  - - id: 123
+                      category: 55
+                      price: 500.67
+                      count: 12
+                      date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                        Time)
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                        alt: hello alt
+                      tags:
+                      - id: 0
+                        name: Hello world
+                      reviews: 5
+                      rating: 4.6
+                    - id: 124
+                      category: 55
+                      price: 201.675
+                      count: 5
+                      date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                        Time)
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                        alt: hello alt
+                      tags:
+                      - id: 0
+                        name: Hello world
+                      reviews: 5
+                      rating: 4.6
+                  summary: Пример корзины
+          description: ''
+    post:
+      operationId: basket_create
+      description: Добавление товара в корзину или обновление количества
+      summary: Добавление товара в корзину
+      tags:
+      - basket
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BasketItemRequest'
+            examples:
+              ПримерТелаЗапроса:
+                value:
+                  id: 12
+                  count: 5
+                summary: Пример тела запроса
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BasketItemRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BasketItemRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BasketItemDetail'
+              examples:
+                ПримерУспешногоОтвета:
+                  value:
+                  - - id: 123
+                      category: 55
+                      price: 500.67
+                      count: 12
+                      date: '2023-02-09T20:39:52Z'
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: https://example.com/image.jpg
+                        alt: hello alt
+                      tags:
+                      - id: 0
+                        name: Hello world
+                      reviews: 5
+                      rating: 4.6
+                  summary: Пример успешного ответа
+          description: ''
+    delete:
+      operationId: basket_destroy
+      description: Удаление товара из корзины или уменьшение количества
+      summary: Удаление товара из корзины или уменьшение количества
+      parameters:
+      - in: query
+        name: count
+        schema:
+          type: integer
+        description: Количество для удаления (для тестирования в Swagger)
+      - in: query
+        name: id
+        schema:
+          type: integer
+        description: ID товара (для тестирования в Swagger)
+      tags:
+      - basket
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BasketItemDetail'
+          description: ''
+  /api/catalog/:
+    get:
+      operationId: get_catalog_items
+      description: get catalog items
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: number
+      - in: query
+        name: currentPage
+        schema:
+          type: number
+          default: 1
+      - in: query
+        name: filter
+        schema:
+          $ref: '#/components/schemas/FilterParamsRequest'
+        description: search text
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 20
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum:
+          - date
+          - price
+          - rating
+          - title
+          default: date
+      - in: query
+        name: sortType
+        schema:
+          type: string
+          enum:
+          - dec
+          - inc
+          default: dec
+      - in: query
+        name: tags
+        schema:
+          $ref: '#/components/schemas/TagFilterRequest'
+        description: page
+      tags:
+      - catalog
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+              examples:
+                ПримерОтвета:
+                  value:
+                    items:
+                    - id: 123
+                      category: 55
+                      price: 500.67
+                      count: 12
+                      date: Thu Feb 09 2023 21:39:52 GMT+0100
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: /3.png
+                        alt: Image alt string
+                      tags:
+                      - id: 12
+                        name: Gaming
+                      reviews: 5
+                      rating: 4.6
+                    currentPage: 1
+                    lastPage: 10
+                  summary: Пример ответа
+          description: Успешный ответ
+  /api/categories/:
+    get:
+      operationId: categories_list
+      summary: Получение списка категорий
+      tags:
+      - catalog
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+              examples:
+                ПримерКатегории:
+                  value:
+                  - id: 123
+                    title: video card
+                    image:
+                      src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                      alt: Image alt string
+                    subcategories:
+                    - id: 123
+                      title: video card
+                      image:
+                        src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                        alt: Image alt string
+                  summary: Пример категории
+          description: ''
+  /api/order/{id}:
+    get:
+      operationId: order_retrieve
+      description: Возвращает информацию о конкретном заказе по его ID
+      summary: Получение деталей заказа
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID заказа
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                ПолучениеЗаказов:
+                  value:
+                  - id: 123
+                    createdAt: 2023-05-05 12:12
+                    fullName: Annoying Orange
+                    email: no-reply@mail.ru
+                    phone: '88002000600'
+                    deliveryType: free
+                    paymentType: online
+                    totalCost: 567.8
+                    status: accepted
+                    city: Moscow
+                    address: red square 1
+                    products:
+                    - id: 123
+                      category: 55
+                      price: 500.67
+                      count: 12
+                      date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                        Time)
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                        alt: Image alt string
+                      tags:
+                      - id: 12
+                        name: Gaming
+                      reviews: 5
+                      rating: 4.6
+                  - id: 124
+                    createdAt: 2023-05-06 14:30
+                    fullName: Another User
+                    email: another@example.com
+                    phone: '88005553535'
+                    deliveryType: express
+                    paymentType: someone
+                    totalCost: 1200.0
+                    status: paid
+                    city: Saint Petersburg
+                    address: Nevsky prospect 10
+                    products: []
+                  summary: Получение заказов
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+    post:
+      operationId: order_create
+      summary: Заполнение деталей заказа
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID заказа
+        required: true
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+            examples:
+              ПримерЗаполненияДеталейЗаказа:
+                value:
+                  id: 123
+                  createdAt: 2023-05-05 12:12
+                  fullName: Annoying Orange
+                  email: no-reply@mail.ru
+                  phone: '88002000600'
+                  deliveryType: free
+                  paymentType: online
+                  totalCost: 567.8
+                  status: accepted
+                  city: Moscow
+                  address: red square 1
+                  products:
+                  - id: 123
+                    category: 55
+                    price: 500.67
+                    count: 12
+                    date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                      Time)
+                    title: video card
+                    description: description of the product
+                    freeDelivery: true
+                    images:
+                    - src: /3.png
+                      alt: Image alt string
+                    tags:
+                    - id: 12
+                      name: Gaming
+                    reviews: 5
+                    rating: 4.6
+                summary: Пример заполнения деталей заказа
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/order/{id}/:
+    get:
+      operationId: order_retrieve_2
+      description: Возвращает информацию о конкретном заказе по его ID
+      summary: Получение деталей заказа
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID заказа
+        required: true
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                ПолучениеЗаказов:
+                  value:
+                  - id: 123
+                    createdAt: 2023-05-05 12:12
+                    fullName: Annoying Orange
+                    email: no-reply@mail.ru
+                    phone: '88002000600'
+                    deliveryType: free
+                    paymentType: online
+                    totalCost: 567.8
+                    status: accepted
+                    city: Moscow
+                    address: red square 1
+                    products:
+                    - id: 123
+                      category: 55
+                      price: 500.67
+                      count: 12
+                      date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                        Time)
+                      title: video card
+                      description: description of the product
+                      freeDelivery: true
+                      images:
+                      - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                        alt: Image alt string
+                      tags:
+                      - id: 12
+                        name: Gaming
+                      reviews: 5
+                      rating: 4.6
+                  - id: 124
+                    createdAt: 2023-05-06 14:30
+                    fullName: Another User
+                    email: another@example.com
+                    phone: '88005553535'
+                    deliveryType: express
+                    paymentType: someone
+                    totalCost: 1200.0
+                    status: paid
+                    city: Saint Petersburg
+                    address: Nevsky prospect 10
+                    products: []
+                  summary: Получение заказов
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+                description: Unspecified response body
+          description: ''
+    post:
+      operationId: order_create_2
+      summary: Заполнение деталей заказа
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: ID заказа
+        required: true
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+            examples:
+              ПримерЗаполненияДеталейЗаказа:
+                value:
+                  id: 123
+                  createdAt: 2023-05-05 12:12
+                  fullName: Annoying Orange
+                  email: no-reply@mail.ru
+                  phone: '88002000600'
+                  deliveryType: free
+                  paymentType: online
+                  totalCost: 567.8
+                  status: accepted
+                  city: Moscow
+                  address: red square 1
+                  products:
+                  - id: 123
+                    category: 55
+                    price: 500.67
+                    count: 12
+                    date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                      Time)
+                    title: video card
+                    description: description of the product
+                    freeDelivery: true
+                    images:
+                    - src: /3.png
+                      alt: Image alt string
+                    tags:
+                    - id: 12
+                      name: Gaming
+                    reviews: 5
+                    rating: 4.6
+                summary: Пример заполнения деталей заказа
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OrderRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/orders/:
+    get:
+      operationId: orders_list
+      description: Возвращает список заказов
+      summary: Получение заказов
+      tags:
+      - order
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+              examples:
+                ПолучениеЗаказов:
+                  value:
+                  - - id: 123
+                      createdAt: 2023-05-05 12:12
+                      fullName: Annoying Orange
+                      email: no-reply@mail.ru
+                      phone: '88002000600'
+                      deliveryType: free
+                      paymentType: online
+                      totalCost: 567.8
+                      status: accepted
+                      city: Moscow
+                      address: red square 1
+                      products:
+                      - id: 123
+                        category: 55
+                        price: 500.67
+                        count: 12
+                        date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European
+                          Standard Time)
+                        title: video card
+                        description: description of the product
+                        freeDelivery: true
+                        images:
+                        - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                          alt: Image alt string
+                        tags:
+                        - id: 12
+                          name: Gaming
+                        reviews: 5
+                        rating: 4.6
+                    - id: 124
+                      createdAt: 2023-05-06 14:30
+                      fullName: Another User
+                      email: another@example.com
+                      phone: '88005553535'
+                      deliveryType: express
+                      paymentType: someone
+                      totalCost: 1200.0
+                      status: paid
+                      city: Saint Petersburg
+                      address: Nevsky prospect 10
+                      products: []
+                  summary: Получение заказов
+          description: ''
+    post:
+      operationId: orders_create
+      summary: Создание заказа
+      tags:
+      - order
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+            examples:
+              ПримерСозданияЗаказа:
+                value:
+                  id: 123
+                  category: 55
+                  price: 500.67
+                  count: 12
+                  date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                    Time)
+                  title: video card
+                  description: description of the product
+                  freeDelivery: true
+                  images:
+                  - src: https://psk68.ru/files/metod/uchebnik_Informatika/user-images/video.png
+                    alt: hello alt
+                  tags:
+                  - id: 0
+                    name: Hello world
+                  reviews: 5
+                  rating: 4.6
+                summary: Пример создания заказа
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderId'
+              examples:
+                ПримерТелаОтвета:
+                  value:
+                    orderId: 123
+                  summary: Пример тела ответа
+          description: ''
+  /api/payment/{id}:
+    post:
+      operationId: payment_create
+      description: Для оплаты заказа введите id заказа
+      summary: Оплата заказа
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+            examples:
+              ПримерОплаты:
+                value:
+                  number: '66666666'
+                  name: Annoying Orange
+                  month: '02'
+                  year: '2025'
+                  code: '123'
+                summary: Пример оплаты
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/payment/{id}/:
+    post:
+      operationId: payment_create_2
+      description: Для оплаты заказа введите id заказа
+      summary: Оплата заказа
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - payment
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+            examples:
+              ПримерОплаты:
+                value:
+                  number: '66666666'
+                  name: Annoying Orange
+                  month: '02'
+                  year: '2025'
+                  code: '123'
+                summary: Пример оплаты
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/product/{id}/:
+    get:
+      operationId: product_retrieve
+      summary: Получение детальной информации по товару по id
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - product
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+              examples:
+                ПримерКарточкиТовара:
+                  value:
+                    id: 123
+                    category: 55
+                    price: 500.67
+                    count: 12
+                    date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                      Time)
+                    title: video card
+                    description: description of the product
+                    fullDescription: full description of the product
+                    freeDelivery: true
+                    images:
+                    - src: https://psk68.ru/files/metod/uchebnik_Informatika/user-images/video.png
+                      alt: hello alt
+                    - src: https://www.asus.com/microsite/2014/vga/gaming_graphics_cards/img/quietly-cool/dust-proof-card.png
+                      alt: hello alt
+                    - src: https://psk68.ru/files/metod/uchebnik_Informatika/user-images/video.png
+                      alt: hello alt
+                    tags:
+                    - id: 0
+                      name: Hello world
+                    reviews:
+                    - author: Annoying Orange
+                      email: no-reply@mail.ru
+                      text: rewrewrwerewrwerwerewrwerwer
+                      rate: 4
+                      date: 2023-05-05 12:12
+                    specifications:
+                    - name: Size
+                      value: XL
+                    rating: 4.6
+                  summary: Пример карточки товара
+          description: ''
+  /api/product/{id}/reviews:
+    get:
+      operationId: product_reviews_list
+      summary: Получение отзывов на товар
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - product
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReviewGet'
+          description: ''
+    post:
+      operationId: product_reviews_create
+      summary: Создание отзыва на товар
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+            examples:
+              ПримерТелаЗапроса:
+                value:
+                  author: Annoying Orange
+                  email: no-reply@mail.ru
+                  text: Отличный товар! Всем рекомендую!
+                  rate: 5
+                  date: 2023-05-05 12:12
+                summary: Пример тела запроса
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReviewCreateRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewCreate'
+              examples:
+                ПримерТелаЗапроса:
+                  value:
+                    author: Annoying Orange
+                    email: no-reply@mail.ru
+                    text: Отличный товар! Всем рекомендую!
+                    rate: 5
+                    date: 2023-05-05 12:12
+                  summary: Пример тела запроса
+          description: ''
+  /api/products/limited/:
+    get:
+      operationId: products_limited_retrieve
+      description: |-
+        В блок «Ограниченный тираж» попадают до 16 товаров с галочкой
+        «ограниченный тираж». Отображаются эти товары в виде слайдера.
+      summary: Получение товаров Ограниченного тиража
+      tags:
+      - catalog
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+              examples:
+                ПримерПопулярногоТовара:
+                  value:
+                  - id: '123'
+                    category: 55
+                    price: 500.67
+                    count: 12
+                    date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                      Time)
+                    title: video card
+                    description: description of the product
+                    freeDelivery: true
+                    images:
+                    - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                      alt: hello alt
+                    tags:
+                    - id: 0
+                      name: Hello world
+                    reviews: 5
+                    rating: 4.6
+                  summary: Пример популярного товара
+          description: ''
+  /api/products/popular/:
+    get:
+      operationId: products_popular_retrieve
+      description: |-
+        В каталог топ-товаров попадают восемь первых товаров по параметру «индекс
+        сортировки». Если же индекс сортировки совпадает, то товары сортируются
+        по количеству покупок
+      summary: Получение популярных товаров (8 самых покупаемых)
+      tags:
+      - catalog
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+              examples:
+                ПримерПопулярногоТовара:
+                  value:
+                  - id: '123'
+                    category: 55
+                    price: 500.67
+                    count: 12
+                    date: Thu Feb 09 2023 21:39:52 GMT+0100 (Central European Standard
+                      Time)
+                    title: video card
+                    description: description of the product
+                    freeDelivery: true
+                    images:
+                    - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                      alt: hello alt
+                    tags:
+                    - id: 0
+                      name: Hello world
+                    reviews: 5
+                    rating: 4.6
+                  summary: Пример популярного товара
+          description: ''
+  /api/profile/:
+    get:
+      operationId: profile_retrieve
+      summary: Получение профиля
+      tags:
+      - profile
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+              examples:
+                ПримерПрофиля:
+                  value:
+                    fullName: Annoying Orange
+                    email: no-reply@mail.ru
+                    phone: '88002000600'
+                    avatar:
+                      src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                      alt: hello alt
+                  summary: Пример профиля
+          description: ''
+    post:
+      operationId: profile_create
+      description: В данном методе не ловится avatar, в сериализаторе read_only=True
+      summary: Обновление профиля
+      tags:
+      - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+            examples:
+              ПримерПрофиля:
+                value:
+                  fullName: Annoying Orange
+                  email: no-reply@mail.ru
+                  phone: '88002000600'
+                  avatar:
+                    src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                    alt: hello alt
+                summary: Пример профиля
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProfileRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+              examples:
+                ПримерПрофиля:
+                  value:
+                    fullName: Annoying Orange
+                    email: no-reply@mail.ru
+                    phone: '88002000600'
+                    avatar:
+                      src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                      alt: hello alt
+                  summary: Пример профиля
+          description: ''
+        '400':
+          description: No response body
+  /api/profile/avatar/:
+    post:
+      operationId: profile_avatar_create
+      summary: Загрузка аватара
+      tags:
+      - profile
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: Файл изображения
+                alt:
+                  type: string
+                  description: Описание изображения
+              required:
+              - avatar
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  src:
+                    type: string
+                  alt:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+          description: ''
+  /api/profile/password/:
+    post:
+      operationId: profile_password_create
+      summary: Смена пароля пользователя
+      tags:
+      - profile
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                currentPassword:
+                  type: string
+                  description: Текущий пароль
+                  example: oldpassword
+                newPassword:
+                  type: string
+                  description: Новый пароль
+                  example: newpassword
+              required:
+              - currentPassword
+              - newPassword
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                properties:
+                  message:
+                    type: string
+          description: ''
+  /api/sales/:
+    get:
+      operationId: sales_list
+      description: Получение товаров из распродажи с пагинацией и кэшированием
+      summary: Получение товаров из распродажи
+      parameters:
+      - in: query
+        name: currentPage
+        schema:
+          type: integer
+          default: 1
+        description: page
+      tags:
+      - catalog
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sales'
+              examples:
+                ПримерТовараСРаспродажи:
+                  value:
+                  - - items:
+                      - id: 123
+                        price: 500.67
+                        salePrice: 200.67
+                        dateFrom: 05-08
+                        dateTo: 05-20
+                        title: video card
+                        images:
+                        - src: https://proprikol.ru/wp-content/uploads/2020/12/kartinki-ryabchiki-14.jpg
+                          alt: hello alt
+                      currentPage: 3
+                      lastPage: 3
+                  summary: Пример товара с распродажи
+          description: ''
+  /api/sign-in/:
+    post:
+      operationId: sign_in_create
+      description: |-
+        Авторизация существующего пользователя.
+        В окошке авторизации вставьте Токен. Token ......
+      summary: Авторизация существующего пользователя
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+          description: ''
+  /api/sign-out/:
+    post:
+      operationId: sign_out_create
+      summary: Выход из системы, удаление токена
+      tags:
+      - auth
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+          description: ''
+  /api/sign-up/:
+    post:
+      operationId: sign_up_create
+      description: Добавьте Token ..... в Авторизации
+      summary: Регистрация нового пользователя
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  description: Имя пользователя
+                username:
+                  type: string
+                  format: username
+                password:
+                  type: string
+                  format: password
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+          description: ''
+  /api/tags/:
+    get:
+      operationId: tags_list
+      description: Класс получения тегов по categoryId
+      summary: Получение тегов
+      parameters:
+      - in: query
+        name: category
+        schema:
+          type: integer
+          default: 2
+        description: categoryId
+      tags:
+      - tags
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Tag'
+          description: ''
+components:
+  schemas:
+    Avatar:
+      type: object
+      description: |-
+        Преобразование объекта аватар в JSON
+        Аватар - вложенный объект в ProfileSerializer
+      properties:
+        src:
+          type: string
+          nullable: true
+          description: Возвращает URL аватара
+          readOnly: true
+        alt:
+          type: string
+          title: Описание
+          maxLength: 128
+      required:
+      - src
+    AvatarRequest:
+      type: object
+      description: |-
+        Преобразование объекта аватар в JSON
+        Аватар - вложенный объект в ProfileSerializer
+      properties:
+        alt:
+          type: string
+          title: Описание
+          maxLength: 128
+    Banner:
+      type: object
+      description: Сериализатор для каталога
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+          title: Категория
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена товара
+        count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Наличие на складе
+        date:
+          type: string
+          format: date-time
+          readOnly: true
+          title: Дата создания карточки товара
+        title:
+          type: string
+          title: Название товара
+          maxLength: 100
+        description:
+          type: string
+          title: Краткое описание товара
+          maxLength: 255
+        freeDelivery:
+          type: boolean
+          readOnly: true
+        images:
+          type: string
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        reviews:
+          type: integer
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - category
+      - date
+      - description
+      - freeDelivery
+      - id
+      - images
+      - price
+      - rating
+      - reviews
+      - tags
+      - title
+    BasketItemDetail:
+      type: object
+      description: Для отображения товаров в корзине с полной информацией о продукте
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          title: Количество
+        category:
+          type: integer
+          readOnly: true
+        price:
+          type: string
+          readOnly: true
+        date:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        freeDelivery:
+          type: boolean
+          readOnly: true
+        images:
+          type: string
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        reviews:
+          type: integer
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - category
+      - date
+      - description
+      - freeDelivery
+      - id
+      - images
+      - price
+      - rating
+      - reviews
+      - tags
+      - title
+    BasketItemRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        count:
+          type: integer
+      required:
+      - count
+      - id
+    Catalog:
+      type: object
+      description: Сериализатор для каталога
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+          title: Категория
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена товара
+        count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Наличие на складе
+        date:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          title: Краткое описание товара
+          maxLength: 255
+        freeDelivery:
+          type: boolean
+          readOnly: true
+        images:
+          type: object
+          additionalProperties: {}
+          description: Возвращает массив изображений
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        reviews:
+          type: integer
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - category
+      - date
+      - description
+      - freeDelivery
+      - id
+      - images
+      - name
+      - price
+      - rating
+      - reviews
+      - tags
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          title: Название категории
+          maxLength: 255
+        image:
+          type: object
+          additionalProperties: {}
+          description: Возвращает словарь с src и alt для изображения
+          readOnly: true
+      required:
+      - id
+      - image
+      - title
+    CreateOrderRequest:
+      type: object
+      description: Сериализатор для создания заказа из корзины
+      properties:
+        id:
+          type: integer
+        category:
+          type: integer
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        count:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        freeDelivery:
+          type: boolean
+        images:
+          type: array
+          items: {}
+        tags:
+          type: array
+          items: {}
+        reviews:
+          type: integer
+        rating:
+          type: string
+          minLength: 1
+      required:
+      - category
+      - count
+      - description
+      - freeDelivery
+      - id
+      - images
+      - price
+      - rating
+      - reviews
+      - tags
+      - title
+    FilterParamsRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+        minPrice:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+        maxPrice:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          default: '0.00'
+        freeDelivery:
+          type: boolean
+          default: false
+        available:
+          type: boolean
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        fullName:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          readOnly: true
+        phone:
+          type: string
+          readOnly: true
+        deliveryType:
+          type: string
+        paymentType:
+          type: string
+        totalCost:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        city:
+          type: string
+          title: Город доставки
+          maxLength: 100
+        address:
+          type: string
+        products:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemProduct'
+          readOnly: true
+      required:
+      - address
+      - city
+      - createdAt
+      - deliveryType
+      - email
+      - fullName
+      - id
+      - paymentType
+      - phone
+      - products
+      - status
+      - totalCost
+    OrderId:
+      type: object
+      properties:
+        orderId:
+          type: integer
+      required:
+      - orderId
+    OrderItemProduct:
+      type: object
+      description: Сериализатор для товара внутри заказа (через OrderItem)
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        count:
+          type: integer
+          readOnly: true
+        date:
+          type: string
+          format: date-time
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        freeDelivery:
+          type: boolean
+          readOnly: true
+        images:
+          type: string
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        reviews:
+          type: integer
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - category
+      - count
+      - date
+      - description
+      - freeDelivery
+      - id
+      - images
+      - price
+      - rating
+      - reviews
+      - tags
+      - title
+    OrderRequest:
+      type: object
+      properties:
+        deliveryType:
+          type: string
+          minLength: 1
+        paymentType:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+          title: Город доставки
+          maxLength: 100
+        address:
+          type: string
+          minLength: 1
+      required:
+      - address
+      - city
+      - deliveryType
+      - paymentType
+    PaymentRequest:
+      type: object
+      properties:
+        number:
+          type: string
+          minLength: 1
+          description: Номер карты (8 цифр)
+          maxLength: 8
+        name:
+          type: string
+          minLength: 1
+          description: Имя владельца
+          maxLength: 100
+        month:
+          type: integer
+          maximum: 12
+          minimum: 1
+          description: Месяц (1-12)
+        year:
+          type: integer
+          maximum: 2034
+          minimum: 2024
+          description: Год
+        code:
+          type: string
+          minLength: 3
+          description: CVV код
+          maxLength: 3
+      required:
+      - code
+      - month
+      - name
+      - number
+      - year
+    Product:
+      type: object
+      description: Сериализатор карточки товара по id
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        category:
+          type: integer
+          title: Категория
+        price:
+          type: string
+          readOnly: true
+        count:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          title: Наличие на складе
+        date:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          title: Название товара
+          maxLength: 100
+        description:
+          type: string
+          title: Краткое описание товара
+          maxLength: 255
+        fullDescription:
+          type: string
+          readOnly: true
+        freeDelivery:
+          type: boolean
+          readOnly: true
+        images:
+          type: object
+          additionalProperties: {}
+          description: Возвращает массив изображений
+          readOnly: true
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+          readOnly: true
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/Review'
+          readOnly: true
+        specifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/Specification'
+          readOnly: true
+        rating:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - category
+      - date
+      - description
+      - freeDelivery
+      - fullDescription
+      - id
+      - images
+      - price
+      - rating
+      - reviews
+      - specifications
+      - tags
+      - title
+    ProductImage:
+      type: object
+      description: Сериализатор для изображений товара
+      properties:
+        src:
+          type: string
+          format: uri
+          readOnly: true
+        alt:
+          type: string
+          readOnly: true
+      required:
+      - alt
+      - src
+    Profile:
+      type: object
+      properties:
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        avatar:
+          allOf:
+          - $ref: '#/components/schemas/Avatar'
+          readOnly: true
+      required:
+      - avatar
+    ProfileRequest:
+      type: object
+      properties:
+        fullName:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+          minLength: 1
+        phone:
+          type: string
+          nullable: true
+    Review:
+      type: object
+      description: Сериализатор для отзывов
+      properties:
+        author:
+          type: string
+        email:
+          type: string
+          format: email
+        text:
+          type: string
+          title: Отзыв покупателя
+          maxLength: 500
+        rate:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          title: Оценка пользователя (от 1 до 5 вкл.)
+        date:
+          type: string
+          readOnly: true
+      required:
+      - author
+      - date
+      - email
+      - rate
+      - text
+    ReviewCreate:
+      type: object
+      properties:
+        author:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        text:
+          type: string
+          title: Отзыв покупателя
+          maxLength: 500
+        rate:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          title: Оценка пользователя (от 1 до 5 вкл.)
+        date:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - author
+      - date
+      - email
+      - rate
+      - text
+    ReviewCreateRequest:
+      type: object
+      properties:
+        text:
+          type: string
+          minLength: 1
+          title: Отзыв покупателя
+          maxLength: 500
+        rate:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          title: Оценка пользователя (от 1 до 5 вкл.)
+      required:
+      - rate
+      - text
+    ReviewGet:
+      type: object
+      description: Сериализатор для получения отзывов (GET)
+      properties:
+        author:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+        text:
+          type: string
+          title: Отзыв покупателя
+          maxLength: 500
+        rate:
+          type: integer
+          maximum: 32767
+          minimum: 0
+          title: Оценка пользователя (от 1 до 5 вкл.)
+        date:
+          type: string
+          readOnly: true
+        avatar:
+          type: string
+          readOnly: true
+      required:
+      - author
+      - avatar
+      - date
+      - email
+      - rate
+      - text
+    Sales:
+      type: object
+      description: Сериализатор для товаров со скидкой
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          title: Цена товара
+        salePrice:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        dateFrom:
+          type: string
+          nullable: true
+          readOnly: true
+        dateTo:
+          type: string
+          nullable: true
+          readOnly: true
+        title:
+          type: string
+          title: Название товара
+          maxLength: 100
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductImage'
+          readOnly: true
+      required:
+      - dateFrom
+      - dateTo
+      - id
+      - images
+      - price
+      - salePrice
+      - title
+    Specification:
+      type: object
+      description: Сериализатор для спецификации
+      properties:
+        name:
+          type: string
+          title: Название
+          maxLength: 100
+        value:
+          type: string
+          title: Значение
+          maxLength: 100
+      required:
+      - name
+      - value
+    Tag:
+      type: object
+      description: Сериализатор для тегов
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          title: Название тэга
+          maxLength: 45
+      required:
+      - id
+      - name
+    TagFilterRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+      required:
+      - id
+      - name
+    TagRequest:
+      type: object
+      description: Сериализатор для тегов
+      properties:
+        name:
+          type: string
+          minLength: 1
+          title: Название тэга
+          maxLength: 45
+      required:
+      - name
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
