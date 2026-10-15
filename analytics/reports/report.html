@@ -1,0 +1,1034 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">
+<title>Анализ заказов — megano</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 1200px;
+         margin: 40px auto; padding: 0 20px; background: #fafafa; color: #333; }
+  h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+  h2 { color: #34495e; margin-top: 0; }
+  .card { background: white; border-radius: 8px; padding: 20px; margin: 20px 0;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  table { border-collapse: collapse; width: 100%; }
+  .kpi { display: inline-block; background: #3498db; color: white;
+         padding: 10px 20px; border-radius: 6px; font-size: 16px; margin: 5px 5px 0 0; }
+</style></head><body>
+  <h1>📊 Расширенный анализ заказов интернет-магазина</h1>
+  <div>
+    <span class="kpi">Всего заказов: 50</span>
+    <span class="kpi">Конверсия в доставку: 70.0%</span>
+    <span class="kpi">Выручка (delivered): 694556.0 $</span>
+    <span class="kpi">Средний чек: 19844.46 $</span>
+    <span class="kpi">Уникальных товаров: 5</span>
+    <span class="kpi">Городов: 4</span>
+  </div>
+  <div class="card"><div style="height:100%; width:100%;">                        <script>window.PlotlyConfig = {MathJaxConfig: 'local'};</script>
+        <script charset="utf-8" src="https://cdn.plot.ly/plotly-4.1.1.min.js" integrity="sha256-O24V1F27f8pb0glCkelh3cVHLNiHAJ5gCaVtq2aNch8=" crossorigin="anonymous"></script>                <div id="9161efa4-55b7-47d7-895b-7b2f22e9c8a5" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("9161efa4-55b7-47d7-895b-7b2f22e9c8a5")) {                    Plotly.newPlot(                        "9161efa4-55b7-47d7-895b-7b2f22e9c8a5",                        [{"hovertemplate":"\u0413\u043e\u0440\u043e\u0434=%{x}\u003cbr\u003e\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $=%{marker.color}\u003cbr\u003e\u0414\u043e\u043b\u044f \u0432\u044b\u0440\u0443\u0447\u043a\u0438, %=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"f8","bdata":"AAAAAGBzC0EAAAAAiKUHQQAAAADwxwZBAAAAABDQ9UA="},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":{"dtype":"f8","bdata":"MzMzMzMzQEBmZmZmZuY7QGZmZmZm5jpAzczMzMzMKUA="},"textposition":"outside","x":["\u041c\u043e\u0441\u043a\u0432\u0430","\u0421\u0430\u043d\u043a\u0442-\u041f\u0435\u0442\u0435\u0440\u0431\u0443\u0440\u0433","\u041a\u0430\u0437\u0430\u043d\u044c","\u041d\u043e\u0432\u043e\u0441\u0438\u0431\u0438\u0440\u0441\u043a"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAGBzC0EAAAAAiKUHQQAAAADwxwZBAAAAABDQ9UA="},"yaxis":"y","type":"bar","texttemplate":"%{text}%"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"\u0413\u043e\u0440\u043e\u0434"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $"}},"coloraxis":{"colorbar":{"title":{"text":"\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $"}},"colorscale":[[0.0,"rgb(247,251,255)"],[0.125,"rgb(222,235,247)"],[0.25,"rgb(198,219,239)"],[0.375,"rgb(158,202,225)"],[0.5,"rgb(107,174,214)"],[0.625,"rgb(66,146,198)"],[0.75,"rgb(33,113,181)"],[0.875,"rgb(8,81,156)"],[1.0,"rgb(8,48,107)"]],"autocolorscale":false},"legend":{"tracegroupgap":0},"title":{"text":"\u0412\u044b\u0440\u0443\u0447\u043a\u0430 \u043f\u043e \u0433\u043e\u0440\u043e\u0434\u0430\u043c"},"barmode":"relative"},                        {"responsive": true}                    )                };            </script>        </div><div style="height:100%; width:100%;">                            <div id="d15c2543-5144-4d60-a668-9058cd72347f" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("d15c2543-5144-4d60-a668-9058cd72347f")) {                    Plotly.newPlot(                        "d15c2543-5144-4d60-a668-9058cd72347f",                        [{"domain":{"x":[0.0,1.0],"y":[0.0,1.0]},"hole":0.4,"hovertemplate":"\u0421\u0442\u0430\u0442\u0443\u0441=%{label}\u003cbr\u003e\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e=%{value}\u003cextra\u003e\u003c\u002fextra\u003e","labels":["delivered","cancelled","created","paid","accepted"],"legendgroup":"","name":"","showlegend":true,"values":{"dtype":"i1","bdata":"IwYEAwI="},"type":"pie"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05}}},"legend":{"tracegroupgap":0},"title":{"text":"\u0420\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u0437\u0430\u043a\u0430\u0437\u043e\u0432 \u043f\u043e \u0441\u0442\u0430\u0442\u0443\u0441\u0430\u043c"}},                        {"responsive": true}                    )                };            </script>        </div><div style="height:100%; width:100%;">                            <div id="5de419b3-8656-418e-948d-7af820ac5c5c" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("5de419b3-8656-418e-948d-7af820ac5c5c")) {                    Plotly.newPlot(                        "5de419b3-8656-418e-948d-7af820ac5c5c",                        [{"hovertemplate":"\u042d\u0442\u0430\u043f=%{x}\u003cbr\u003e\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e=%{marker.color}\u003cbr\u003e\u041a\u043e\u043d\u0432\u0435\u0440\u0441\u0438\u044f \u043e\u0442 \u0432\u0441\u0435\u0445, %=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","marker":{"color":{"dtype":"i1","bdata":"BAIDIw=="},"coloraxis":"coloraxis","pattern":{"shape":""}},"name":"","orientation":"v","showlegend":false,"text":{"dtype":"f8","bdata":"AAAAAAAAIEAAAAAAAAAQQAAAAAAAABhAAAAAAACAUUA="},"textposition":"outside","x":["\u0421\u043e\u0437\u0434\u0430\u043d","\u041f\u0440\u0438\u043d\u044f\u0442","\u041e\u043f\u043b\u0430\u0447\u0435\u043d","\u0414\u043e\u0441\u0442\u0430\u0432\u043b\u0435\u043d"],"xaxis":"x","y":{"dtype":"i1","bdata":"BAIDIw=="},"yaxis":"y","type":"bar","texttemplate":"%{text}%"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"\u042d\u0442\u0430\u043f"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e"}},"coloraxis":{"colorbar":{"title":{"text":"\u041a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e"}},"colorscale":[[0.0,"rgb(247,252,245)"],[0.125,"rgb(229,245,224)"],[0.25,"rgb(199,233,192)"],[0.375,"rgb(161,217,155)"],[0.5,"rgb(116,196,118)"],[0.625,"rgb(65,171,93)"],[0.75,"rgb(35,139,69)"],[0.875,"rgb(0,109,44)"],[1.0,"rgb(0,68,27)"]],"autocolorscale":false},"legend":{"tracegroupgap":0},"title":{"text":"\u0412\u043e\u0440\u043e\u043d\u043a\u0430 \u043a\u043e\u043d\u0432\u0435\u0440\u0441\u0438\u0438 \u0437\u0430\u043a\u0430\u0437\u043e\u0432"},"barmode":"relative"},                        {"responsive": true}                    )                };            </script>        </div><div style="height:100%; width:100%;">                            <div id="a9b43ab3-8d25-4ace-a10f-7bcda6187971" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("a9b43ab3-8d25-4ace-a10f-7bcda6187971")) {                    Plotly.newPlot(                        "a9b43ab3-8d25-4ace-a10f-7bcda6187971",                        [{"hovertemplate":"segment=%{x}\u003cbr\u003e\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $=%{y}\u003cbr\u003e\u0414\u043e\u043b\u044f \u0432\u044b\u0440\u0443\u0447\u043a\u0438, %=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"\u0421\u0440\u0435\u0434\u043d\u0438\u0439","marker":{"color":"#636efa","pattern":{"shape":""}},"name":"\u0421\u0440\u0435\u0434\u043d\u0438\u0439","orientation":"v","showlegend":true,"text":{"dtype":"f8","bdata":"zczMzMzM\u002fD8="},"textposition":"outside","x":["\u0421\u0440\u0435\u0434\u043d\u0438\u0439"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAIAg0kA="},"yaxis":"y","type":"bar","texttemplate":"%{text}%"},{"hovertemplate":"segment=%{x}\u003cbr\u003e\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $=%{y}\u003cbr\u003e\u0414\u043e\u043b\u044f \u0432\u044b\u0440\u0443\u0447\u043a\u0438, %=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"\u041a\u0440\u0443\u043f\u043d\u044b\u0439","marker":{"color":"#EF553B","pattern":{"shape":""}},"name":"\u041a\u0440\u0443\u043f\u043d\u044b\u0439","orientation":"v","showlegend":true,"text":{"dtype":"f8","bdata":"MzMzMzOzOUA="},"textposition":"outside","x":["\u041a\u0440\u0443\u043f\u043d\u044b\u0439"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAABwbEEE="},"yaxis":"y","type":"bar","texttemplate":"%{text}%"},{"hovertemplate":"segment=%{x}\u003cbr\u003e\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $=%{y}\u003cbr\u003e\u0414\u043e\u043b\u044f \u0432\u044b\u0440\u0443\u0447\u043a\u0438, %=%{text}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"VIP","marker":{"color":"#00cc96","pattern":{"shape":""}},"name":"VIP","orientation":"v","showlegend":true,"text":{"dtype":"f8","bdata":"AAAAAAAgUkA="},"textposition":"outside","x":["VIP"],"xaxis":"x","y":{"dtype":"f8","bdata":"AAAAAJKyJkE="},"yaxis":"y","type":"bar","texttemplate":"%{text}%"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"segment"},"categoryorder":"array","categoryarray":["\u0421\u0440\u0435\u0434\u043d\u0438\u0439","\u041a\u0440\u0443\u043f\u043d\u044b\u0439","VIP"]},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"\u0412\u044b\u0440\u0443\u0447\u043a\u0430, $"}},"legend":{"title":{"text":"segment"},"tracegroupgap":0},"title":{"text":"\u0412\u044b\u0440\u0443\u0447\u043a\u0430 \u043f\u043e \u0441\u0435\u0433\u043c\u0435\u043d\u0442\u0430\u043c \u0447\u0435\u043a\u0430"},"barmode":"relative"},                        {"responsive": true}                    )                };            </script>        </div><div style="height:100%; width:100%;">                            <div id="659363ff-1c26-48a0-a7f0-e5b421a78984" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("659363ff-1c26-48a0-a7f0-e5b421a78984")) {                    Plotly.newPlot(                        "659363ff-1c26-48a0-a7f0-e5b421a78984",                        [{"hovertemplate":"\u0414\u0430\u0442\u0430=%{x}\u003cbr\u003e\u0417\u0430\u043a\u0430\u0437\u043e\u0432=%{y}\u003cextra\u003e\u003c\u002fextra\u003e","legendgroup":"","line":{"color":"#636efa","dash":"solid"},"marker":{"symbol":"circle"},"mode":"lines+markers","name":"","orientation":"v","showlegend":false,"x":["2024-01-04","2024-01-05","2024-01-07","2024-01-15","2024-01-16","2024-01-17","2024-01-19","2024-01-20","2024-01-22","2024-01-24","2024-01-25","2024-02-08","2024-02-12","2024-02-14","2024-02-15","2024-02-17","2024-02-18","2024-02-24","2024-03-06","2024-03-07","2024-03-09","2024-03-12","2024-03-13","2024-03-24","2024-03-28","2024-03-30","2024-04-05","2024-04-06","2024-04-09","2024-04-10","2024-04-12","2024-04-22","2024-04-23","2024-04-25","2024-04-26","2024-04-28","2024-05-04","2024-05-08","2024-05-13","2024-05-16","2024-05-23"],"xaxis":"x","y":{"dtype":"i1","bdata":"AQEBAgEBAQIBAQEBAQEBAQEBAwEBAQECAgEBAQEBAQECAQMBAQEBAQE="},"yaxis":"y","type":"scatter"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermap":[{"type":"scattermap","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"\u0414\u0430\u0442\u0430"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"\u0417\u0430\u043a\u0430\u0437\u043e\u0432"}},"legend":{"tracegroupgap":0},"title":{"text":"\u0414\u0438\u043d\u0430\u043c\u0438\u043a\u0430 \u0437\u0430\u043a\u0430\u0437\u043e\u0432 \u043f\u043e \u0434\u043d\u044f\u043c"}},                        {"responsive": true}                    )                };            </script>        </div></div>
+  <div class="card"><h2>KPI (сводка)</h2><style type="text/css">
+#T_ab074 th {
+  background-color: #34495e;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_ab074 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_ab074 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_ab074">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_ab074_level0_col0" class="col_heading level0 col0" >Метрика</th>
+      <th id="T_ab074_level0_col1" class="col_heading level0 col1" >Значение</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_ab074_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_ab074_row0_col0" class="data row0 col0" >Всего заказов</td>
+      <td id="T_ab074_row0_col1" class="data row0 col1" >50.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_ab074_row1_col0" class="data row1 col0" >Доставлено</td>
+      <td id="T_ab074_row1_col1" class="data row1 col1" >35.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_ab074_row2_col0" class="data row2 col0" >Конверсия в доставку, %</td>
+      <td id="T_ab074_row2_col1" class="data row2 col1" >70.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_ab074_row3_col0" class="data row3 col0" >Отменено</td>
+      <td id="T_ab074_row3_col1" class="data row3 col1" >6.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_ab074_row4_col0" class="data row4 col0" >Доля отмен, %</td>
+      <td id="T_ab074_row4_col1" class="data row4 col1" >12.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row5" class="row_heading level0 row5" >5</th>
+      <td id="T_ab074_row5_col0" class="data row5 col0" >Общая выручка (delivered), $</td>
+      <td id="T_ab074_row5_col1" class="data row5 col1" >694556.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row6" class="row_heading level0 row6" >6</th>
+      <td id="T_ab074_row6_col0" class="data row6 col0" >Средний чек (delivered), $</td>
+      <td id="T_ab074_row6_col1" class="data row6 col1" >19844.46</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row7" class="row_heading level0 row7" >7</th>
+      <td id="T_ab074_row7_col0" class="data row7 col0" >Всего позиций в заказах</td>
+      <td id="T_ab074_row7_col1" class="data row7 col1" >102.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row8" class="row_heading level0 row8" >8</th>
+      <td id="T_ab074_row8_col0" class="data row8 col0" >Среднее позиций на заказ</td>
+      <td id="T_ab074_row8_col1" class="data row8 col1" >2.04</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row9" class="row_heading level0 row9" >9</th>
+      <td id="T_ab074_row9_col0" class="data row9 col0" >Уникальных товаров</td>
+      <td id="T_ab074_row9_col1" class="data row9 col1" >5.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row10" class="row_heading level0 row10" >10</th>
+      <td id="T_ab074_row10_col0" class="data row10 col0" >Уникальных городов</td>
+      <td id="T_ab074_row10_col1" class="data row10 col1" >4.00</td>
+    </tr>
+    <tr>
+      <th id="T_ab074_level0_row11" class="row_heading level0 row11" >11</th>
+      <td id="T_ab074_row11_col0" class="data row11 col0" >Дорогих заказов (>10000), %</td>
+      <td id="T_ab074_row11_col1" class="data row11 col1" >76.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Заказы по статусам</h2><style type="text/css">
+#T_a5f74 th {
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_a5f74 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_a5f74 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_a5f74">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_a5f74_level0_col0" class="col_heading level0 col0" >Статус</th>
+      <th id="T_a5f74_level0_col1" class="col_heading level0 col1" >Количество</th>
+      <th id="T_a5f74_level0_col2" class="col_heading level0 col2" >Доля, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_a5f74_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_a5f74_row0_col0" class="data row0 col0" >delivered</td>
+      <td id="T_a5f74_row0_col1" class="data row0 col1" >35</td>
+      <td id="T_a5f74_row0_col2" class="data row0 col2" >70.00</td>
+    </tr>
+    <tr>
+      <th id="T_a5f74_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_a5f74_row1_col0" class="data row1 col0" >cancelled</td>
+      <td id="T_a5f74_row1_col1" class="data row1 col1" >6</td>
+      <td id="T_a5f74_row1_col2" class="data row1 col2" >12.00</td>
+    </tr>
+    <tr>
+      <th id="T_a5f74_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_a5f74_row2_col0" class="data row2 col0" >created</td>
+      <td id="T_a5f74_row2_col1" class="data row2 col1" >4</td>
+      <td id="T_a5f74_row2_col2" class="data row2 col2" >8.00</td>
+    </tr>
+    <tr>
+      <th id="T_a5f74_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_a5f74_row3_col0" class="data row3 col0" >paid</td>
+      <td id="T_a5f74_row3_col1" class="data row3 col1" >3</td>
+      <td id="T_a5f74_row3_col2" class="data row3 col2" >6.00</td>
+    </tr>
+    <tr>
+      <th id="T_a5f74_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_a5f74_row4_col0" class="data row4 col0" >accepted</td>
+      <td id="T_a5f74_row4_col1" class="data row4 col1" >2</td>
+      <td id="T_a5f74_row4_col2" class="data row4 col2" >4.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Воронка конверсии</h2><style type="text/css">
+#T_d6f53 th {
+  background-color: #16a085;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_d6f53 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_d6f53 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_d6f53">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_d6f53_level0_col0" class="col_heading level0 col0" >Этап</th>
+      <th id="T_d6f53_level0_col1" class="col_heading level0 col1" >Количество</th>
+      <th id="T_d6f53_level0_col2" class="col_heading level0 col2" >Конверсия от всех, %</th>
+      <th id="T_d6f53_level0_col3" class="col_heading level0 col3" >Конверсия от предыдущего, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_d6f53_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_d6f53_row0_col0" class="data row0 col0" >Создан</td>
+      <td id="T_d6f53_row0_col1" class="data row0 col1" >4</td>
+      <td id="T_d6f53_row0_col2" class="data row0 col2" >8.00</td>
+      <td id="T_d6f53_row0_col3" class="data row0 col3" >100.00</td>
+    </tr>
+    <tr>
+      <th id="T_d6f53_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_d6f53_row1_col0" class="data row1 col0" >Принят</td>
+      <td id="T_d6f53_row1_col1" class="data row1 col1" >2</td>
+      <td id="T_d6f53_row1_col2" class="data row1 col2" >4.00</td>
+      <td id="T_d6f53_row1_col3" class="data row1 col3" >50.00</td>
+    </tr>
+    <tr>
+      <th id="T_d6f53_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_d6f53_row2_col0" class="data row2 col0" >Оплачен</td>
+      <td id="T_d6f53_row2_col1" class="data row2 col1" >3</td>
+      <td id="T_d6f53_row2_col2" class="data row2 col2" >6.00</td>
+      <td id="T_d6f53_row2_col3" class="data row2 col3" >150.00</td>
+    </tr>
+    <tr>
+      <th id="T_d6f53_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_d6f53_row3_col0" class="data row3 col0" >Доставлен</td>
+      <td id="T_d6f53_row3_col1" class="data row3 col1" >35</td>
+      <td id="T_d6f53_row3_col2" class="data row3 col2" >70.00</td>
+      <td id="T_d6f53_row3_col3" class="data row3 col3" >1166.70</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Средний чек по доставке</h2><style type="text/css">
+#T_468f6 th {
+  background-color: #27ae60;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_468f6 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_468f6 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_468f6">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_468f6_level0_col0" class="col_heading level0 col0" >Тип доставки</th>
+      <th id="T_468f6_level0_col1" class="col_heading level0 col1" >Заказов</th>
+      <th id="T_468f6_level0_col2" class="col_heading level0 col2" >Средний чек, $</th>
+      <th id="T_468f6_level0_col3" class="col_heading level0 col3" >Выручка, $</th>
+      <th id="T_468f6_level0_col4" class="col_heading level0 col4" >Доля заказов, %</th>
+      <th id="T_468f6_level0_col5" class="col_heading level0 col5" >Доля выручки, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_468f6_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_468f6_row0_col0" class="data row0 col0" >courier</td>
+      <td id="T_468f6_row0_col1" class="data row0 col1" >14</td>
+      <td id="T_468f6_row0_col2" class="data row0 col2" >21474.57</td>
+      <td id="T_468f6_row0_col3" class="data row0 col3" >300644.00</td>
+      <td id="T_468f6_row0_col4" class="data row0 col4" >40.00</td>
+      <td id="T_468f6_row0_col5" class="data row0 col5" >43.30</td>
+    </tr>
+    <tr>
+      <th id="T_468f6_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_468f6_row1_col0" class="data row1 col0" >pickup</td>
+      <td id="T_468f6_row1_col1" class="data row1 col1" >11</td>
+      <td id="T_468f6_row1_col2" class="data row1 col2" >16624.82</td>
+      <td id="T_468f6_row1_col3" class="data row1 col3" >182873.00</td>
+      <td id="T_468f6_row1_col4" class="data row1 col4" >31.40</td>
+      <td id="T_468f6_row1_col5" class="data row1 col5" >26.30</td>
+    </tr>
+    <tr>
+      <th id="T_468f6_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_468f6_row2_col0" class="data row2 col0" >post</td>
+      <td id="T_468f6_row2_col1" class="data row2 col1" >10</td>
+      <td id="T_468f6_row2_col2" class="data row2 col2" >21103.90</td>
+      <td id="T_468f6_row2_col3" class="data row2 col3" >211039.00</td>
+      <td id="T_468f6_row2_col4" class="data row2 col4" >28.60</td>
+      <td id="T_468f6_row2_col5" class="data row2 col5" >30.40</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Топ товаров</h2><style type="text/css">
+#T_f9dba th {
+  background-color: #e67e22;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_f9dba td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_f9dba tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_f9dba">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_f9dba_level0_col0" class="col_heading level0 col0" >Товар</th>
+      <th id="T_f9dba_level0_col1" class="col_heading level0 col1" >Продано, шт</th>
+      <th id="T_f9dba_level0_col2" class="col_heading level0 col2" >Выручка, $</th>
+      <th id="T_f9dba_level0_col3" class="col_heading level0 col3" >Доля продаж, %</th>
+      <th id="T_f9dba_level0_col4" class="col_heading level0 col4" >Доля выручки, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_f9dba_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_f9dba_row0_col0" class="data row0 col0" >Книга</td>
+      <td id="T_f9dba_row0_col1" class="data row0 col1" >83</td>
+      <td id="T_f9dba_row0_col2" class="data row0 col2" >90357.00</td>
+      <td id="T_f9dba_row0_col3" class="data row0 col3" >24.50</td>
+      <td id="T_f9dba_row0_col4" class="data row0 col4" >20.10</td>
+    </tr>
+    <tr>
+      <th id="T_f9dba_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_f9dba_row1_col0" class="data row1 col0" >Кружка</td>
+      <td id="T_f9dba_row1_col1" class="data row1 col1" >75</td>
+      <td id="T_f9dba_row1_col2" class="data row1 col2" >120204.00</td>
+      <td id="T_f9dba_row1_col3" class="data row1 col3" >22.10</td>
+      <td id="T_f9dba_row1_col4" class="data row1 col4" >26.70</td>
+    </tr>
+    <tr>
+      <th id="T_f9dba_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_f9dba_row2_col0" class="data row2 col0" >Футболка</td>
+      <td id="T_f9dba_row2_col1" class="data row2 col1" >70</td>
+      <td id="T_f9dba_row2_col2" class="data row2 col2" >115293.00</td>
+      <td id="T_f9dba_row2_col3" class="data row2 col3" >20.60</td>
+      <td id="T_f9dba_row2_col4" class="data row2 col4" >25.60</td>
+    </tr>
+    <tr>
+      <th id="T_f9dba_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_f9dba_row3_col0" class="data row3 col0" >Тетрадь</td>
+      <td id="T_f9dba_row3_col1" class="data row3 col1" >56</td>
+      <td id="T_f9dba_row3_col2" class="data row3 col2" >78562.00</td>
+      <td id="T_f9dba_row3_col3" class="data row3 col3" >16.50</td>
+      <td id="T_f9dba_row3_col4" class="data row3 col4" >17.50</td>
+    </tr>
+    <tr>
+      <th id="T_f9dba_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_f9dba_row4_col0" class="data row4 col0" >Ручка</td>
+      <td id="T_f9dba_row4_col1" class="data row4 col1" >55</td>
+      <td id="T_f9dba_row4_col2" class="data row4 col2" >45131.00</td>
+      <td id="T_f9dba_row4_col3" class="data row4 col3" >16.20</td>
+      <td id="T_f9dba_row4_col4" class="data row4 col4" >10.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Выручка по городам</h2><style type="text/css">
+#T_18943 th {
+  background-color: #9b59b6;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_18943 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_18943 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_18943">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_18943_level0_col0" class="col_heading level0 col0" >Город</th>
+      <th id="T_18943_level0_col1" class="col_heading level0 col1" >Заказов</th>
+      <th id="T_18943_level0_col2" class="col_heading level0 col2" >Выручка, $</th>
+      <th id="T_18943_level0_col3" class="col_heading level0 col3" >Средний чек, $</th>
+      <th id="T_18943_level0_col4" class="col_heading level0 col4" >Доля выручки, %</th>
+      <th id="T_18943_level0_col5" class="col_heading level0 col5" >Доля заказов, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_18943_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_18943_row0_col0" class="data row0 col0" >Москва</td>
+      <td id="T_18943_row0_col1" class="data row0 col1" >10</td>
+      <td id="T_18943_row0_col2" class="data row0 col2" >224876.00</td>
+      <td id="T_18943_row0_col3" class="data row0 col3" >22487.60</td>
+      <td id="T_18943_row0_col4" class="data row0 col4" >32.40</td>
+      <td id="T_18943_row0_col5" class="data row0 col5" >28.60</td>
+    </tr>
+    <tr>
+      <th id="T_18943_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_18943_row1_col0" class="data row1 col0" >Санкт-Петербург</td>
+      <td id="T_18943_row1_col1" class="data row1 col1" >10</td>
+      <td id="T_18943_row1_col2" class="data row1 col2" >193713.00</td>
+      <td id="T_18943_row1_col3" class="data row1 col3" >19371.30</td>
+      <td id="T_18943_row1_col4" class="data row1 col4" >27.90</td>
+      <td id="T_18943_row1_col5" class="data row1 col5" >28.60</td>
+    </tr>
+    <tr>
+      <th id="T_18943_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_18943_row2_col0" class="data row2 col0" >Казань</td>
+      <td id="T_18943_row2_col1" class="data row2 col1" >9</td>
+      <td id="T_18943_row2_col2" class="data row2 col2" >186622.00</td>
+      <td id="T_18943_row2_col3" class="data row2 col3" >20735.78</td>
+      <td id="T_18943_row2_col4" class="data row2 col4" >26.90</td>
+      <td id="T_18943_row2_col5" class="data row2 col5" >25.70</td>
+    </tr>
+    <tr>
+      <th id="T_18943_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_18943_row3_col0" class="data row3 col0" >Новосибирск</td>
+      <td id="T_18943_row3_col1" class="data row3 col1" >6</td>
+      <td id="T_18943_row3_col2" class="data row3 col2" >89345.00</td>
+      <td id="T_18943_row3_col3" class="data row3 col3" >14890.83</td>
+      <td id="T_18943_row3_col4" class="data row3 col4" >12.90</td>
+      <td id="T_18943_row3_col5" class="data row3 col5" >17.10</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Типы оплаты</h2><style type="text/css">
+#T_c579e th {
+  background-color: #c0392b;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_c579e td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_c579e tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_c579e">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_c579e_level0_col0" class="col_heading level0 col0" >Тип оплаты</th>
+      <th id="T_c579e_level0_col1" class="col_heading level0 col1" >Количество</th>
+      <th id="T_c579e_level0_col2" class="col_heading level0 col2" >Доля, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_c579e_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_c579e_row0_col0" class="data row0 col0" >card</td>
+      <td id="T_c579e_row0_col1" class="data row0 col1" >22</td>
+      <td id="T_c579e_row0_col2" class="data row0 col2" >44.00</td>
+    </tr>
+    <tr>
+      <th id="T_c579e_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_c579e_row1_col0" class="data row1 col0" >online</td>
+      <td id="T_c579e_row1_col1" class="data row1 col1" >19</td>
+      <td id="T_c579e_row1_col2" class="data row1 col2" >38.00</td>
+    </tr>
+    <tr>
+      <th id="T_c579e_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_c579e_row2_col0" class="data row2 col0" >cash</td>
+      <td id="T_c579e_row2_col1" class="data row2 col1" >9</td>
+      <td id="T_c579e_row2_col2" class="data row2 col2" >18.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Динамика по дням</h2><style type="text/css">
+#T_33205 th {
+  background-color: #7f8c8d;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_33205 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_33205 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_33205">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_33205_level0_col0" class="col_heading level0 col0" >Дата</th>
+      <th id="T_33205_level0_col1" class="col_heading level0 col1" >Заказов</th>
+      <th id="T_33205_level0_col2" class="col_heading level0 col2" >Выручка, $</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_33205_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_33205_row0_col0" class="data row0 col0" >2024-01-04</td>
+      <td id="T_33205_row0_col1" class="data row0 col1" >1</td>
+      <td id="T_33205_row0_col2" class="data row0 col2" >31090.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_33205_row1_col0" class="data row1 col0" >2024-01-05</td>
+      <td id="T_33205_row1_col1" class="data row1 col1" >1</td>
+      <td id="T_33205_row1_col2" class="data row1 col2" >39326.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_33205_row2_col0" class="data row2 col0" >2024-01-07</td>
+      <td id="T_33205_row2_col1" class="data row2 col1" >1</td>
+      <td id="T_33205_row2_col2" class="data row2 col2" >8340.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_33205_row3_col0" class="data row3 col0" >2024-01-15</td>
+      <td id="T_33205_row3_col1" class="data row3 col1" >2</td>
+      <td id="T_33205_row3_col2" class="data row3 col2" >35669.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_33205_row4_col0" class="data row4 col0" >2024-01-16</td>
+      <td id="T_33205_row4_col1" class="data row4 col1" >1</td>
+      <td id="T_33205_row4_col2" class="data row4 col2" >31945.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row5" class="row_heading level0 row5" >5</th>
+      <td id="T_33205_row5_col0" class="data row5 col0" >2024-01-17</td>
+      <td id="T_33205_row5_col1" class="data row5 col1" >1</td>
+      <td id="T_33205_row5_col2" class="data row5 col2" >39031.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row6" class="row_heading level0 row6" >6</th>
+      <td id="T_33205_row6_col0" class="data row6 col0" >2024-01-19</td>
+      <td id="T_33205_row6_col1" class="data row6 col1" >1</td>
+      <td id="T_33205_row6_col2" class="data row6 col2" >35784.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row7" class="row_heading level0 row7" >7</th>
+      <td id="T_33205_row7_col0" class="data row7 col0" >2024-01-20</td>
+      <td id="T_33205_row7_col1" class="data row7 col1" >2</td>
+      <td id="T_33205_row7_col2" class="data row7 col2" >34390.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row8" class="row_heading level0 row8" >8</th>
+      <td id="T_33205_row8_col0" class="data row8 col0" >2024-01-22</td>
+      <td id="T_33205_row8_col1" class="data row8 col1" >1</td>
+      <td id="T_33205_row8_col2" class="data row8 col2" >13311.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row9" class="row_heading level0 row9" >9</th>
+      <td id="T_33205_row9_col0" class="data row9 col0" >2024-01-24</td>
+      <td id="T_33205_row9_col1" class="data row9 col1" >1</td>
+      <td id="T_33205_row9_col2" class="data row9 col2" >36978.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row10" class="row_heading level0 row10" >10</th>
+      <td id="T_33205_row10_col0" class="data row10 col0" >2024-01-25</td>
+      <td id="T_33205_row10_col1" class="data row10 col1" >1</td>
+      <td id="T_33205_row10_col2" class="data row10 col2" >37584.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row11" class="row_heading level0 row11" >11</th>
+      <td id="T_33205_row11_col0" class="data row11 col0" >2024-02-08</td>
+      <td id="T_33205_row11_col1" class="data row11 col1" >1</td>
+      <td id="T_33205_row11_col2" class="data row11 col2" >8047.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row12" class="row_heading level0 row12" >12</th>
+      <td id="T_33205_row12_col0" class="data row12 col0" >2024-02-12</td>
+      <td id="T_33205_row12_col1" class="data row12 col1" >1</td>
+      <td id="T_33205_row12_col2" class="data row12 col2" >29481.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row13" class="row_heading level0 row13" >13</th>
+      <td id="T_33205_row13_col0" class="data row13 col0" >2024-02-14</td>
+      <td id="T_33205_row13_col1" class="data row13 col1" >1</td>
+      <td id="T_33205_row13_col2" class="data row13 col2" >5924.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row14" class="row_heading level0 row14" >14</th>
+      <td id="T_33205_row14_col0" class="data row14 col0" >2024-02-15</td>
+      <td id="T_33205_row14_col1" class="data row14 col1" >1</td>
+      <td id="T_33205_row14_col2" class="data row14 col2" >22329.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row15" class="row_heading level0 row15" >15</th>
+      <td id="T_33205_row15_col0" class="data row15 col0" >2024-02-17</td>
+      <td id="T_33205_row15_col1" class="data row15 col1" >1</td>
+      <td id="T_33205_row15_col2" class="data row15 col2" >25758.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row16" class="row_heading level0 row16" >16</th>
+      <td id="T_33205_row16_col0" class="data row16 col0" >2024-02-18</td>
+      <td id="T_33205_row16_col1" class="data row16 col1" >1</td>
+      <td id="T_33205_row16_col2" class="data row16 col2" >3977.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row17" class="row_heading level0 row17" >17</th>
+      <td id="T_33205_row17_col0" class="data row17 col0" >2024-02-24</td>
+      <td id="T_33205_row17_col1" class="data row17 col1" >1</td>
+      <td id="T_33205_row17_col2" class="data row17 col2" >14361.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row18" class="row_heading level0 row18" >18</th>
+      <td id="T_33205_row18_col0" class="data row18 col0" >2024-03-06</td>
+      <td id="T_33205_row18_col1" class="data row18 col1" >3</td>
+      <td id="T_33205_row18_col2" class="data row18 col2" >47653.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row19" class="row_heading level0 row19" >19</th>
+      <td id="T_33205_row19_col0" class="data row19 col0" >2024-03-07</td>
+      <td id="T_33205_row19_col1" class="data row19 col1" >1</td>
+      <td id="T_33205_row19_col2" class="data row19 col2" >10311.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row20" class="row_heading level0 row20" >20</th>
+      <td id="T_33205_row20_col0" class="data row20 col0" >2024-03-09</td>
+      <td id="T_33205_row20_col1" class="data row20 col1" >1</td>
+      <td id="T_33205_row20_col2" class="data row20 col2" >2453.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row21" class="row_heading level0 row21" >21</th>
+      <td id="T_33205_row21_col0" class="data row21 col0" >2024-03-12</td>
+      <td id="T_33205_row21_col1" class="data row21 col1" >1</td>
+      <td id="T_33205_row21_col2" class="data row21 col2" >38197.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row22" class="row_heading level0 row22" >22</th>
+      <td id="T_33205_row22_col0" class="data row22 col0" >2024-03-13</td>
+      <td id="T_33205_row22_col1" class="data row22 col1" >1</td>
+      <td id="T_33205_row22_col2" class="data row22 col2" >18205.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row23" class="row_heading level0 row23" >23</th>
+      <td id="T_33205_row23_col0" class="data row23 col0" >2024-03-24</td>
+      <td id="T_33205_row23_col1" class="data row23 col1" >2</td>
+      <td id="T_33205_row23_col2" class="data row23 col2" >47561.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row24" class="row_heading level0 row24" >24</th>
+      <td id="T_33205_row24_col0" class="data row24 col0" >2024-03-28</td>
+      <td id="T_33205_row24_col1" class="data row24 col1" >2</td>
+      <td id="T_33205_row24_col2" class="data row24 col2" >50406.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row25" class="row_heading level0 row25" >25</th>
+      <td id="T_33205_row25_col0" class="data row25 col0" >2024-03-30</td>
+      <td id="T_33205_row25_col1" class="data row25 col1" >1</td>
+      <td id="T_33205_row25_col2" class="data row25 col2" >2746.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row26" class="row_heading level0 row26" >26</th>
+      <td id="T_33205_row26_col0" class="data row26 col0" >2024-04-05</td>
+      <td id="T_33205_row26_col1" class="data row26 col1" >1</td>
+      <td id="T_33205_row26_col2" class="data row26 col2" >4532.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row27" class="row_heading level0 row27" >27</th>
+      <td id="T_33205_row27_col0" class="data row27 col0" >2024-04-06</td>
+      <td id="T_33205_row27_col1" class="data row27 col1" >1</td>
+      <td id="T_33205_row27_col2" class="data row27 col2" >22271.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row28" class="row_heading level0 row28" >28</th>
+      <td id="T_33205_row28_col0" class="data row28 col0" >2024-04-09</td>
+      <td id="T_33205_row28_col1" class="data row28 col1" >1</td>
+      <td id="T_33205_row28_col2" class="data row28 col2" >17300.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row29" class="row_heading level0 row29" >29</th>
+      <td id="T_33205_row29_col0" class="data row29 col0" >2024-04-10</td>
+      <td id="T_33205_row29_col1" class="data row29 col1" >1</td>
+      <td id="T_33205_row29_col2" class="data row29 col2" >34348.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row30" class="row_heading level0 row30" >30</th>
+      <td id="T_33205_row30_col0" class="data row30 col0" >2024-04-12</td>
+      <td id="T_33205_row30_col1" class="data row30 col1" >1</td>
+      <td id="T_33205_row30_col2" class="data row30 col2" >33476.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row31" class="row_heading level0 row31" >31</th>
+      <td id="T_33205_row31_col0" class="data row31 col0" >2024-04-22</td>
+      <td id="T_33205_row31_col1" class="data row31 col1" >1</td>
+      <td id="T_33205_row31_col2" class="data row31 col2" >1206.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row32" class="row_heading level0 row32" >32</th>
+      <td id="T_33205_row32_col0" class="data row32 col0" >2024-04-23</td>
+      <td id="T_33205_row32_col1" class="data row32 col1" >2</td>
+      <td id="T_33205_row32_col2" class="data row32 col2" >30516.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row33" class="row_heading level0 row33" >33</th>
+      <td id="T_33205_row33_col0" class="data row33 col0" >2024-04-25</td>
+      <td id="T_33205_row33_col1" class="data row33 col1" >1</td>
+      <td id="T_33205_row33_col2" class="data row33 col2" >16998.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row34" class="row_heading level0 row34" >34</th>
+      <td id="T_33205_row34_col0" class="data row34 col0" >2024-04-26</td>
+      <td id="T_33205_row34_col1" class="data row34 col1" >3</td>
+      <td id="T_33205_row34_col2" class="data row34 col2" >64850.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row35" class="row_heading level0 row35" >35</th>
+      <td id="T_33205_row35_col0" class="data row35 col0" >2024-04-28</td>
+      <td id="T_33205_row35_col1" class="data row35 col1" >1</td>
+      <td id="T_33205_row35_col2" class="data row35 col2" >19391.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row36" class="row_heading level0 row36" >36</th>
+      <td id="T_33205_row36_col0" class="data row36 col0" >2024-05-04</td>
+      <td id="T_33205_row36_col1" class="data row36 col1" >1</td>
+      <td id="T_33205_row36_col2" class="data row36 col2" >33825.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row37" class="row_heading level0 row37" >37</th>
+      <td id="T_33205_row37_col0" class="data row37 col0" >2024-05-08</td>
+      <td id="T_33205_row37_col1" class="data row37 col1" >1</td>
+      <td id="T_33205_row37_col2" class="data row37 col2" >33045.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row38" class="row_heading level0 row38" >38</th>
+      <td id="T_33205_row38_col0" class="data row38 col0" >2024-05-13</td>
+      <td id="T_33205_row38_col1" class="data row38 col1" >1</td>
+      <td id="T_33205_row38_col2" class="data row38 col2" >5523.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row39" class="row_heading level0 row39" >39</th>
+      <td id="T_33205_row39_col0" class="data row39 col0" >2024-05-16</td>
+      <td id="T_33205_row39_col1" class="data row39 col1" >1</td>
+      <td id="T_33205_row39_col2" class="data row39 col2" >18839.00</td>
+    </tr>
+    <tr>
+      <th id="T_33205_level0_row40" class="row_heading level0 row40" >40</th>
+      <td id="T_33205_row40_col0" class="data row40 col0" >2024-05-23</td>
+      <td id="T_33205_row40_col1" class="data row40 col1" >1</td>
+      <td id="T_33205_row40_col2" class="data row40 col2" >19217.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Pivot — города × месяцы</h2><style type="text/css">
+#T_74750 th {
+  background-color: #34495e;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_74750 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_74750 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_74750">
+  <thead>
+    <tr>
+      <th class="index_name level0" >month</th>
+      <th id="T_74750_level0_col0" class="col_heading level0 col0" >Город</th>
+      <th id="T_74750_level0_col1" class="col_heading level0 col1" >2024-01</th>
+      <th id="T_74750_level0_col2" class="col_heading level0 col2" >2024-02</th>
+      <th id="T_74750_level0_col3" class="col_heading level0 col3" >2024-03</th>
+      <th id="T_74750_level0_col4" class="col_heading level0 col4" >2024-04</th>
+      <th id="T_74750_level0_col5" class="col_heading level0 col5" >2024-05</th>
+      <th id="T_74750_level0_col6" class="col_heading level0 col6" >ИТОГО</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_74750_level0_row0" class="row_heading level0 row0" >1</th>
+      <td id="T_74750_row0_col0" class="data row0 col0" >Москва</td>
+      <td id="T_74750_row0_col1" class="data row0 col1" >210858.00</td>
+      <td id="T_74750_row0_col2" class="data row0 col2" >44737.00</td>
+      <td id="T_74750_row0_col3" class="data row0 col3" >30720.00</td>
+      <td id="T_74750_row0_col4" class="data row0 col4" >33476.00</td>
+      <td id="T_74750_row0_col5" class="data row0 col5" >33045.00</td>
+      <td id="T_74750_row0_col6" class="data row0 col6" >352836.00</td>
+    </tr>
+    <tr>
+      <th id="T_74750_level0_row1" class="row_heading level0 row1" >3</th>
+      <td id="T_74750_row1_col0" class="data row1 col0" >Санкт-Петербург</td>
+      <td id="T_74750_row1_col1" class="data row1 col1" >34828.00</td>
+      <td id="T_74750_row1_col2" class="data row1 col2" >29735.00</td>
+      <td id="T_74750_row1_col3" class="data row1 col3" >48508.00</td>
+      <td id="T_74750_row1_col4" class="data row1 col4" >113100.00</td>
+      <td id="T_74750_row1_col5" class="data row1 col5" >52664.00</td>
+      <td id="T_74750_row1_col6" class="data row1 col6" >278835.00</td>
+    </tr>
+    <tr>
+      <th id="T_74750_level0_row2" class="row_heading level0 row2" >0</th>
+      <td id="T_74750_row2_col0" class="data row2 col0" >Казань</td>
+      <td id="T_74750_row2_col1" class="data row2 col1" >68068.00</td>
+      <td id="T_74750_row2_col2" class="data row2 col2" >35405.00</td>
+      <td id="T_74750_row2_col3" class="data row2 col3" >50445.00</td>
+      <td id="T_74750_row2_col4" class="data row2 col4" >58271.00</td>
+      <td id="T_74750_row2_col5" class="data row2 col5" >5523.00</td>
+      <td id="T_74750_row2_col6" class="data row2 col6" >217712.00</td>
+    </tr>
+    <tr>
+      <th id="T_74750_level0_row3" class="row_heading level0 row3" >2</th>
+      <td id="T_74750_row3_col0" class="data row3 col0" >Новосибирск</td>
+      <td id="T_74750_row3_col1" class="data row3 col1" >29694.00</td>
+      <td id="T_74750_row3_col2" class="data row3 col2" >0.00</td>
+      <td id="T_74750_row3_col3" class="data row3 col3" >87859.00</td>
+      <td id="T_74750_row3_col4" class="data row3 col4" >40041.00</td>
+      <td id="T_74750_row3_col5" class="data row3 col5" >19217.00</td>
+      <td id="T_74750_row3_col6" class="data row3 col6" >176811.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Сегменты по чеку</h2><style type="text/css">
+#T_3b824 th {
+  background-color: #3498db;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_3b824 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_3b824 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_3b824">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_3b824_level0_col0" class="col_heading level0 col0" >segment</th>
+      <th id="T_3b824_level0_col1" class="col_heading level0 col1" >Заказов</th>
+      <th id="T_3b824_level0_col2" class="col_heading level0 col2" >Выручка, $</th>
+      <th id="T_3b824_level0_col3" class="col_heading level0 col3" >Средний чек, $</th>
+      <th id="T_3b824_level0_col4" class="col_heading level0 col4" >Доля заказов, %</th>
+      <th id="T_3b824_level0_col5" class="col_heading level0 col5" >Доля выручки, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_3b824_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_3b824_row0_col0" class="data row0 col0" >Средний</td>
+      <td id="T_3b824_row0_col1" class="data row0 col1" >6</td>
+      <td id="T_3b824_row0_col2" class="data row0 col2" >18562.00</td>
+      <td id="T_3b824_row0_col3" class="data row0 col3" >3093.67</td>
+      <td id="T_3b824_row0_col4" class="data row0 col4" >12.00</td>
+      <td id="T_3b824_row0_col5" class="data row0 col5" >1.80</td>
+    </tr>
+    <tr>
+      <th id="T_3b824_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_3b824_row1_col0" class="data row1 col0" >Крупный</td>
+      <td id="T_3b824_row1_col1" class="data row1 col1" >20</td>
+      <td id="T_3b824_row1_col2" class="data row1 col2" >263879.00</td>
+      <td id="T_3b824_row1_col3" class="data row1 col3" >13193.95</td>
+      <td id="T_3b824_row1_col4" class="data row1 col4" >40.00</td>
+      <td id="T_3b824_row1_col5" class="data row1 col5" >25.70</td>
+    </tr>
+    <tr>
+      <th id="T_3b824_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_3b824_row2_col0" class="data row2 col0" >VIP</td>
+      <td id="T_3b824_row2_col1" class="data row2 col1" >24</td>
+      <td id="T_3b824_row2_col2" class="data row2 col2" >743753.00</td>
+      <td id="T_3b824_row2_col3" class="data row2 col3" >30989.71</td>
+      <td id="T_3b824_row2_col4" class="data row2 col4" >48.00</td>
+      <td id="T_3b824_row2_col5" class="data row2 col5" >72.50</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>RFM-сегменты клиентов</h2><style type="text/css">
+#T_67a1a th {
+  background-color: #16a085;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_67a1a td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_67a1a tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_67a1a">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_67a1a_level0_col0" class="col_heading level0 col0" >Сегмент</th>
+      <th id="T_67a1a_level0_col1" class="col_heading level0 col1" >Клиентов</th>
+      <th id="T_67a1a_level0_col2" class="col_heading level0 col2" >Средний чек, $</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_67a1a_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_67a1a_row0_col0" class="data row0 col0" >VIP</td>
+      <td id="T_67a1a_row0_col1" class="data row0 col1" >5</td>
+      <td id="T_67a1a_row0_col2" class="data row0 col2" >76783.80</td>
+    </tr>
+    <tr>
+      <th id="T_67a1a_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_67a1a_row1_col0" class="data row1 col0" >Новые перспективные</td>
+      <td id="T_67a1a_row1_col1" class="data row1 col1" >4</td>
+      <td id="T_67a1a_row1_col2" class="data row1 col2" >28073.25</td>
+    </tr>
+    <tr>
+      <th id="T_67a1a_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_67a1a_row2_col0" class="data row2 col0" >Обычные</td>
+      <td id="T_67a1a_row2_col1" class="data row2 col1" >7</td>
+      <td id="T_67a1a_row2_col2" class="data row2 col2" >44766.00</td>
+    </tr>
+    <tr>
+      <th id="T_67a1a_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_67a1a_row3_col0" class="data row3 col0" >Уходящие ценные</td>
+      <td id="T_67a1a_row3_col1" class="data row3 col1" >3</td>
+      <td id="T_67a1a_row3_col2" class="data row3 col2" >72206.67</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Исходы заказов</h2><style type="text/css">
+#T_7054d th {
+  background-color: #27ae60;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_7054d td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_7054d tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_7054d">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_7054d_level0_col0" class="col_heading level0 col0" >outcome</th>
+      <th id="T_7054d_level0_col1" class="col_heading level0 col1" >Заказов</th>
+      <th id="T_7054d_level0_col2" class="col_heading level0 col2" >Доля, %</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_7054d_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_7054d_row0_col0" class="data row0 col0" >В процессе</td>
+      <td id="T_7054d_row0_col1" class="data row0 col1" >9</td>
+      <td id="T_7054d_row0_col2" class="data row0 col2" >18.00</td>
+    </tr>
+    <tr>
+      <th id="T_7054d_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_7054d_row1_col0" class="data row1 col0" >Потерян</td>
+      <td id="T_7054d_row1_col1" class="data row1 col1" >6</td>
+      <td id="T_7054d_row1_col2" class="data row1 col2" >12.00</td>
+    </tr>
+    <tr>
+      <th id="T_7054d_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_7054d_row2_col0" class="data row2 col0" >Успешно</td>
+      <td id="T_7054d_row2_col1" class="data row2 col1" >35</td>
+      <td id="T_7054d_row2_col2" class="data row2 col2" >70.00</td>
+    </tr>
+  </tbody>
+</table>
+</div><div class="card"><h2>Категории (concat)</h2><style type="text/css">
+#T_bec57 th {
+  background-color: #e67e22;
+  color: white;
+  padding: 10px;
+  text-align: left;
+}
+#T_bec57 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+#T_bec57 tr:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<table id="T_bec57">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_bec57_level0_col0" class="col_heading level0 col0" >Категория</th>
+      <th id="T_bec57_level0_col1" class="col_heading level0 col1" >Значение</th>
+      <th id="T_bec57_level0_col2" class="col_heading level0 col2" >Тип</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_bec57_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_bec57_row0_col0" class="data row0 col0" >delivered</td>
+      <td id="T_bec57_row0_col1" class="data row0 col1" >35</td>
+      <td id="T_bec57_row0_col2" class="data row0 col2" >Статус</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_bec57_row1_col0" class="data row1 col0" >cancelled</td>
+      <td id="T_bec57_row1_col1" class="data row1 col1" >6</td>
+      <td id="T_bec57_row1_col2" class="data row1 col2" >Статус</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_bec57_row2_col0" class="data row2 col0" >created</td>
+      <td id="T_bec57_row2_col1" class="data row2 col1" >4</td>
+      <td id="T_bec57_row2_col2" class="data row2 col2" >Статус</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_bec57_row3_col0" class="data row3 col0" >paid</td>
+      <td id="T_bec57_row3_col1" class="data row3 col1" >3</td>
+      <td id="T_bec57_row3_col2" class="data row3 col2" >Статус</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_bec57_row4_col0" class="data row4 col0" >accepted</td>
+      <td id="T_bec57_row4_col1" class="data row4 col1" >2</td>
+      <td id="T_bec57_row4_col2" class="data row4 col2" >Статус</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row5" class="row_heading level0 row5" >5</th>
+      <td id="T_bec57_row5_col0" class="data row5 col0" >card</td>
+      <td id="T_bec57_row5_col1" class="data row5 col1" >22</td>
+      <td id="T_bec57_row5_col2" class="data row5 col2" >Оплата</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row6" class="row_heading level0 row6" >6</th>
+      <td id="T_bec57_row6_col0" class="data row6 col0" >online</td>
+      <td id="T_bec57_row6_col1" class="data row6 col1" >19</td>
+      <td id="T_bec57_row6_col2" class="data row6 col2" >Оплата</td>
+    </tr>
+    <tr>
+      <th id="T_bec57_level0_row7" class="row_heading level0 row7" >7</th>
+      <td id="T_bec57_row7_col0" class="data row7 col0" >cash</td>
+      <td id="T_bec57_row7_col1" class="data row7 col1" >9</td>
+      <td id="T_bec57_row7_col2" class="data row7 col2" >Оплата</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</body></html>

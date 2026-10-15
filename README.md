@@ -25,9 +25,24 @@
 - Создание, редактирование, мягкое удаление сущностей через Административную панель
 - Автоматическая загрузка демо данных для демонстрации
 
+## Пояснения аналитика данных:
+
+| Папка / файл | Что внутри | Инструменты |
+|---|---|---|
+| `data_analysis/analysis.sql` | SQL-запросы | CTE, `DENSE_RANK`, `JOIN`, `CASE` |
+| `data_analysis/analysis_csv.py` | pandas-анализ CSV | очистка, `merge`, `groupby`, `pivot_table`, RFM, Plotly, Excel, HTML |
+| `data_analysis/analysis_sql_pandas.py` | SQL + pandas | `pd.read_sql()`, SQLAlchemy |
+| `data_analysis/analysis_sql_python.py` | SQL + Python | `psycopg2`, `text()` |
+| `data_analysis/analysis_api_csv_pandas.py` | API + pandas + CSV | `requests`, `pd.DataFrame()`, `concat` |
+| `src/recon/` | Разведка БД | системные каталоги PostgreSQL |
+| `reports/` | Готовые отчёты | xlsx, html |
+
+---
+
+
 ## Пояснения системного аналитика:
 **API_contract**
-- api_contract можно посмотреть здесь: [docs/api_contact.yaml](docs/api_contact.yaml)
+- api_contract можно посмотреть здесь: [api_contact.yaml](analytics/sys_analytics/api_contact.yaml)
 
 💳 **Асинхронная оплата → сборка заказа**
 - Клиент шлёт запрос на оплату → бэкенд сразу возвращает `200 OK` ✅
@@ -38,7 +53,7 @@
 - Слабосвязанная архитектура: склад падает — оплата работает ⚡
 
 **Тестовые сценарии**
-- Можно посмотреть здесь: [docs/tests_scenarios](docs/tests_scenarios.md)
+- Можно посмотреть здесь: [docs/tests_scenarios](analytics/sys_analytics/tests_scenarios.md)
 
 
 ## 🖥 Интерфейс
@@ -254,3 +269,4 @@ python_django_diploma
 
 ## Автор
 ### Анастасия Гогохия
+## Telegram: @gogiau
